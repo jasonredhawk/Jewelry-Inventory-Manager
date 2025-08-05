@@ -181,8 +181,7 @@
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                         <Button x:Name="btnCreateTransfer" Content="📦 Create Transfer" 
                                 Style="{StaticResource SuccessButtonStyle}"
-                                Click="btnCreateTransfer_Click" 
-                                Margin="0,0,10,0"/>
+                                Click="btnCreateTransfer_Click"/>
                         <Button x:Name="btnViewTransfers" Content="📋 View All Transfers" 
                                 Style="{StaticResource ModernButtonStyle}"
                                 Click="btnViewTransfers_Click"/>

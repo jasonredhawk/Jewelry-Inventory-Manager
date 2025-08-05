@@ -107,7 +107,7 @@
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="20">
             <Button x:Name="btnSave" Content="💾 Save Transaction" 
                     Style="{StaticResource SuccessButtonStyle}"
-                    Click="btnSave_Click" Margin="0,0,10,0"/>
+                    Click="btnSave_Click"/>
             <Button x:Name="btnCancel" Content="❌ Cancel" 
                     Style="{StaticResource ModernButtonStyle}"
                     Click="btnCancel_Click"/>

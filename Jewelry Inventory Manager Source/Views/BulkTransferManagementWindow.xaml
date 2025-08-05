@@ -93,8 +93,7 @@
                         Content="🗑️ Clear Filters" 
                         Style="{StaticResource WarningButtonStyle}"
                         Click="btnClearFilters_Click"
-                        VerticalAlignment="Bottom"
-                        Padding="12,6"/>
+                        VerticalAlignment="Bottom"/>
             </Grid>
         </Border>
 
@@ -158,28 +157,24 @@
                             Content="👁️ View Details" 
                             Style="{StaticResource ModernButtonStyle}"
                             Click="btnViewDetails_Click"
-                            IsEnabled="False"
-                            Margin="0,0,10,0"/>
+                            IsEnabled="False"/>
                     
                     <Button x:Name="btnUpdateStatus" 
                             Content="🔄 Update Status" 
                             Style="{StaticResource WarningButtonStyle}"
                             Click="btnUpdateStatus_Click"
-                            IsEnabled="False"
-                            Margin="0,0,10,0"/>
+                            IsEnabled="False"/>
                     
                     <Button x:Name="btnExecuteTransfer" 
                             Content="✅ Execute Transfer" 
                             Style="{StaticResource SuccessButtonStyle}"
                             Click="btnExecuteTransfer_Click"
-                            IsEnabled="False"
-                            Margin="0,0,10,0"/>
+                            IsEnabled="False"/>
                     
                     <Button x:Name="btnRefresh" 
                             Content="🔄 Refresh" 
                             Style="{StaticResource ModernButtonStyle}"
-                            Click="btnRefresh_Click"
-                            Margin="0,0,10,0"/>
+                            Click="btnRefresh_Click"/>
                     
                     <Button x:Name="btnClose" 
                             Content="❌ Close" 

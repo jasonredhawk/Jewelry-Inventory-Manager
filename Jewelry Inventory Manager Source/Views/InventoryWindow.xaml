@@ -118,15 +118,15 @@
                                         Style="{StaticResource WarningButtonStyle}"
                                         Click="btnTransfer_Click"/>
                                 
-                                                             <Button x:Name="btnGeneratePO" 
-                                     Content="📋 Generate PO" 
-                                     Style="{StaticResource ModernButtonStyle}"
-                                     Click="btnGeneratePO_Click"/>
+                                <Button x:Name="btnGeneratePO" 
+                                        Content="📋 Generate PO" 
+                                        Style="{StaticResource ModernButtonStyle}"
+                                        Click="btnGeneratePO_Click"/>
                              
-                             <Button x:Name="btnSetMinimumStock" 
-                                     Content="⚙️ Set Minimum Stock" 
-                                     Style="{StaticResource ModernButtonStyle}"
-                                     Click="btnSetMinimumStock_Click"/>
+                                <Button x:Name="btnSetMinimumStock" 
+                                        Content="⚙️ Set Minimum Stock" 
+                                        Style="{StaticResource ModernButtonStyle}"
+                                        Click="btnSetMinimumStock_Click"/>
                             </StackPanel>
                             
                             <!-- Filters Row -->

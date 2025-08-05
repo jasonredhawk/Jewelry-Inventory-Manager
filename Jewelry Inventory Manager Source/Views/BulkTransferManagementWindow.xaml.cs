@@ -198,6 +198,7 @@ namespace Moonglow_DB.Views
             if (_selectedTransfer == null) return;
 
             var dialog = new StatusUpdateDialog(_selectedTransfer.Status);
+            dialog.Owner = this;
             if (dialog.ShowDialog() == true)
             {
                 try
@@ -261,131 +262,5 @@ namespace Moonglow_DB.Views
         }
     }
 
-    // Helper dialog for status updates
-    public class StatusUpdateDialog : Window
-    {
-        public TransferStatus SelectedStatus { get; private set; }
 
-        public StatusUpdateDialog(TransferStatus currentStatus)
-        {
-            Title = "Update Transfer Status";
-            Width = 400;
-            Height = 300;
-            WindowStartupLocation = WindowStartupLocation.CenterOwner;
-            ResizeMode = ResizeMode.NoResize;
-
-            var grid = new Grid();
-            grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-            grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-            grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-            grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-            grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-            grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-
-            var lblCurrent = new TextBlock
-            {
-                Text = $"Current Status: {currentStatus}",
-                FontWeight = FontWeights.Bold,
-                Margin = new Thickness(10)
-            };
-            Grid.SetRow(lblCurrent, 0);
-
-            var lblNew = new TextBlock
-            {
-                Text = "New Status:",
-                Margin = new Thickness(10, 20, 10, 5)
-            };
-            Grid.SetRow(lblNew, 1);
-
-            var cmbStatus = new ComboBox
-            {
-                Margin = new Thickness(10, 5, 10, 10)
-            };
-            Grid.SetRow(cmbStatus, 2);
-
-            // Add status options based on current status
-            var statuses = GetAvailableStatuses(currentStatus);
-            foreach (var status in statuses)
-            {
-                cmbStatus.Items.Add(new ComboBoxItem { Content = status.ToString(), Tag = status });
-            }
-            cmbStatus.SelectedIndex = 0;
-
-            var lblHelp = new TextBlock
-            {
-                Text = GetStatusHelpText(currentStatus),
-                TextWrapping = TextWrapping.Wrap,
-                Margin = new Thickness(10, 10, 10, 10),
-                FontSize = 11
-            };
-            Grid.SetRow(lblHelp, 3);
-
-            var buttonPanel = new StackPanel
-            {
-                Orientation = Orientation.Horizontal,
-                HorizontalAlignment = HorizontalAlignment.Right,
-                Margin = new Thickness(10, 10, 10, 10)
-            };
-            Grid.SetRow(buttonPanel, 4);
-
-            var btnOK = new Button
-            {
-                Content = "Update",
-                Padding = new Thickness(15, 5, 15, 5),
-                Margin = new Thickness(0, 0, 10, 0)
-            };
-            btnOK.Click += (s, e) =>
-            {
-                if (cmbStatus.SelectedItem is ComboBoxItem selectedItem)
-                {
-                    SelectedStatus = (TransferStatus)selectedItem.Tag;
-                    DialogResult = true;
-                }
-            };
-
-            var btnCancel = new Button
-            {
-                Content = "Cancel",
-                Padding = new Thickness(15, 5, 15, 5)
-            };
-            btnCancel.Click += (s, e) => DialogResult = false;
-
-            buttonPanel.Children.Add(btnOK);
-            buttonPanel.Children.Add(btnCancel);
-
-            grid.Children.Add(lblCurrent);
-            grid.Children.Add(lblNew);
-            grid.Children.Add(cmbStatus);
-            grid.Children.Add(lblHelp);
-            grid.Children.Add(buttonPanel);
-
-            Content = grid;
-        }
-
-        private List<TransferStatus> GetAvailableStatuses(TransferStatus currentStatus)
-        {
-            return currentStatus switch
-            {
-                TransferStatus.Created => new List<TransferStatus> { TransferStatus.InTransit, TransferStatus.Cancelled },
-                TransferStatus.InTransit => new List<TransferStatus> { TransferStatus.Delivered, TransferStatus.Cancelled },
-                TransferStatus.Delivered => new List<TransferStatus> { TransferStatus.Completed },
-                TransferStatus.Completed => new List<TransferStatus> { TransferStatus.Completed },
-                TransferStatus.Cancelled => new List<TransferStatus> { TransferStatus.Cancelled },
-                _ => new List<TransferStatus> { TransferStatus.Created }
-            };
-        }
-
-        private string GetStatusHelpText(TransferStatus currentStatus)
-        {
-            return currentStatus switch
-            {
-                TransferStatus.Created => "Created: Transfer order has been created and items are being prepared for shipment.",
-                TransferStatus.InTransit => "In Transit: Items have been shipped and are en route to the destination.",
-                TransferStatus.Delivered => "Delivered: Items have arrived at the destination location. Ready to execute transfer.",
-                TransferStatus.Completed => "Completed: Transfer has been executed and stock levels have been updated.",
-                TransferStatus.Cancelled => "Cancelled: Transfer has been cancelled and will not be processed.",
-                _ => "Select the new status for this transfer."
-            };
-        }
-    }
 } 
