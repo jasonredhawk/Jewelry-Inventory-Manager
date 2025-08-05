@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Controls;
 using Moonglow_DB.Data;
 using Moonglow_DB.Models;
+using Moonglow_DB.Views.Controls;
 using MySql.Data.MySqlClient;
 
 namespace Moonglow_DB.Views
@@ -18,6 +19,9 @@ namespace Moonglow_DB.Views
         private List<TransformationItem> _sourceItems;
         private List<TransformationItem> _resultItems;
         private Component _selectedSourceComponent;
+        private Component _selectedAddComponent;
+        private Component _selectedResultComponent;
+        private Component _selectedCombineResultComponent;
 
         public ComponentTransformationWindow(DatabaseContext databaseContext)
         {
@@ -32,24 +36,36 @@ namespace Moonglow_DB.Views
 
         private void ComponentTransformationWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            LoadComponents();
+            InitializeFilteredComboBoxes();
             LoadLocations();
             UpdateSummary();
         }
 
-        private void LoadComponents()
+        private void InitializeFilteredComboBoxes()
         {
             try
             {
-                _allComponents = _databaseContext.GetAllComponents();
-                cmbSourceComponent.ItemsSource = _allComponents;
-                cmbAddComponent.ItemsSource = _allComponents;
-                cmbResultComponent.ItemsSource = _allComponents;
-                cmbCombineResultComponent.ItemsSource = _allComponents;
+                // Load all components
+                _allComponents = _databaseContext.GetAllComponents().Where(c => c.IsActive).ToList();
+                
+                // Create filter service
+                var filterService = new ItemFilterService(_databaseContext);
+                
+                // Initialize all filtered combo boxes
+                filteredSourceComponentComboBox.Initialize(filterService, new List<Product>(), _allComponents);
+                filteredAddComponentComboBox.Initialize(filterService, new List<Product>(), _allComponents);
+                filteredResultComponentComboBox.Initialize(filterService, new List<Product>(), _allComponents);
+                filteredCombineResultComponentComboBox.Initialize(filterService, new List<Product>(), _allComponents);
+                
+                // Set all to components only (false)
+                filteredSourceComponentComboBox.SetItemType(false);
+                filteredAddComponentComboBox.SetItemType(false);
+                filteredResultComponentComboBox.SetItemType(false);
+                filteredCombineResultComponentComboBox.SetItemType(false);
             }
             catch (Exception ex)
             {
-                ErrorDialog.ShowError($"Error loading components: {ex.Message}", "Error");
+                ErrorDialog.ShowError($"Error initializing filtered combo boxes: {ex.Message}", "Error");
             }
         }
 
@@ -124,16 +140,60 @@ namespace Moonglow_DB.Views
                 dgResultComponents.ItemsSource = null;
         }
 
-        private void cmbSourceComponent_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void FilteredSourceComponentComboBox_SelectionChanged(object sender, object selectedItem)
         {
-            _selectedSourceComponent = cmbSourceComponent.SelectedItem as Component;
+            if (selectedItem is ComboBoxDisplayItem displayItem && displayItem.Item is Component component)
+            {
+                _selectedSourceComponent = component;
+            }
+            else
+            {
+                _selectedSourceComponent = null;
+            }
             UpdateSummary();
         }
 
+        private void FilteredAddComponentComboBox_SelectionChanged(object sender, object selectedItem)
+        {
+            if (selectedItem is ComboBoxDisplayItem displayItem && displayItem.Item is Component component)
+            {
+                _selectedAddComponent = component;
+            }
+            else
+            {
+                _selectedAddComponent = null;
+            }
+        }
+
+        private void FilteredResultComponentComboBox_SelectionChanged(object sender, object selectedItem)
+        {
+            if (selectedItem is ComboBoxDisplayItem displayItem && displayItem.Item is Component component)
+            {
+                _selectedResultComponent = component;
+            }
+            else
+            {
+                _selectedResultComponent = null;
+            }
+        }
+
+        private void FilteredCombineResultComponentComboBox_SelectionChanged(object sender, object selectedItem)
+        {
+            if (selectedItem is ComboBoxDisplayItem displayItem && displayItem.Item is Component component)
+            {
+                _selectedCombineResultComponent = component;
+            }
+            else
+            {
+                _selectedCombineResultComponent = null;
+            }
+        }
+
+
+
         private void btnAddComponent_Click(object sender, RoutedEventArgs e)
         {
-            var selectedComponent = cmbAddComponent.SelectedItem as Component;
-            if (selectedComponent == null)
+            if (_selectedAddComponent == null)
             {
                 ErrorDialog.ShowWarning("Please select a component to add.", "No Selection");
                 return;
@@ -146,7 +206,7 @@ namespace Moonglow_DB.Views
             }
 
             // Check if component already exists in source items
-            var existingItem = _sourceItems.FirstOrDefault(x => x.ComponentId == selectedComponent.Id);
+            var existingItem = _sourceItems.FirstOrDefault(x => x.ComponentId == _selectedAddComponent.Id);
             if (existingItem != null)
             {
                 existingItem.Quantity += quantity;
@@ -155,11 +215,11 @@ namespace Moonglow_DB.Views
             {
                 var newItem = new TransformationItem
                 {
-                    ComponentId = selectedComponent.Id,
-                    ComponentName = selectedComponent.Name,
-                    ComponentSKU = selectedComponent.SKU,
+                    ComponentId = _selectedAddComponent.Id,
+                    ComponentName = _selectedAddComponent.Name,
+                    ComponentSKU = _selectedAddComponent.SKU,
                     Quantity = quantity,
-                    UnitCost = selectedComponent.Cost
+                    UnitCost = _selectedAddComponent.Cost
                 };
                 _sourceItems.Add(newItem);
             }
@@ -169,6 +229,12 @@ namespace Moonglow_DB.Views
                 dgSourceComponents.ItemsSource = null;
                 dgSourceComponents.ItemsSource = _sourceItems;
             }
+            
+            // Clear the selection
+            filteredAddComponentComboBox.ClearSelection();
+            _selectedAddComponent = null;
+            txtAddQuantity.Text = "1";
+            
             UpdateSummary();
         }
 
@@ -189,8 +255,7 @@ namespace Moonglow_DB.Views
 
         private void btnAddResult_Click(object sender, RoutedEventArgs e)
         {
-            var selectedComponent = cmbResultComponent.SelectedItem as Component;
-            if (selectedComponent == null)
+            if (_selectedResultComponent == null)
             {
                 ErrorDialog.ShowWarning("Please select a result component.", "No Selection");
                 return;
@@ -204,11 +269,11 @@ namespace Moonglow_DB.Views
 
             var newItem = new TransformationItem
             {
-                ComponentId = selectedComponent.Id,
-                ComponentName = selectedComponent.Name,
-                ComponentSKU = selectedComponent.SKU,
+                ComponentId = _selectedResultComponent.Id,
+                ComponentName = _selectedResultComponent.Name,
+                ComponentSKU = _selectedResultComponent.SKU,
                 Quantity = quantity,
-                UnitCost = selectedComponent.Cost
+                UnitCost = _selectedResultComponent.Cost
             };
             _resultItems.Add(newItem);
 
@@ -217,13 +282,18 @@ namespace Moonglow_DB.Views
                 dgResultComponents.ItemsSource = null;
                 dgResultComponents.ItemsSource = _resultItems;
             }
+            
+            // Clear the selection
+            filteredResultComponentComboBox.ClearSelection();
+            _selectedResultComponent = null;
+            txtResultQuantity.Text = "1";
+            
             UpdateSummary();
         }
 
         private void btnAddCombineResult_Click(object sender, RoutedEventArgs e)
         {
-            var selectedComponent = cmbCombineResultComponent.SelectedItem as Component;
-            if (selectedComponent == null)
+            if (_selectedCombineResultComponent == null)
             {
                 ErrorDialog.ShowWarning("Please select a result component.", "No Selection");
                 return;
@@ -237,11 +307,11 @@ namespace Moonglow_DB.Views
 
             var newItem = new TransformationItem
             {
-                ComponentId = selectedComponent.Id,
-                ComponentName = selectedComponent.Name,
-                ComponentSKU = selectedComponent.SKU,
+                ComponentId = _selectedCombineResultComponent.Id,
+                ComponentName = _selectedCombineResultComponent.Name,
+                ComponentSKU = _selectedCombineResultComponent.SKU,
                 Quantity = quantity,
-                UnitCost = selectedComponent.Cost
+                UnitCost = _selectedCombineResultComponent.Cost
             };
             _resultItems.Add(newItem);
 
@@ -250,6 +320,12 @@ namespace Moonglow_DB.Views
                 dgResultComponents.ItemsSource = null;
                 dgResultComponents.ItemsSource = _resultItems;
             }
+            
+            // Clear the selection
+            filteredCombineResultComponentComboBox.ClearSelection();
+            _selectedCombineResultComponent = null;
+            txtCombineResultQuantity.Text = "1";
+            
             UpdateSummary();
         }
 

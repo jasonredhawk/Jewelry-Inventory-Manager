@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using Moonglow_DB.Models;
 using Moonglow_DB.Data;
+using Moonglow_DB.Views.Controls;
 
 namespace Moonglow_DB.Views
 {
@@ -13,6 +14,7 @@ namespace Moonglow_DB.Views
         private List<Product> _allProducts;
         private List<Customer> _allCustomers;
         private List<OrderItem> _selectedItems;
+        private Product _selectedProduct;
         private readonly DatabaseContext _databaseContext;
 
         public AddOrderWindow(DatabaseContext databaseContext)
@@ -27,7 +29,7 @@ namespace Moonglow_DB.Views
         {
             try
             {
-                LoadProducts();
+                InitializeFilteredComboBox();
                 LoadCustomers();
                 LoadEmployees();
                 LoadOrderTypes();
@@ -41,28 +43,25 @@ namespace Moonglow_DB.Views
             }
         }
 
-        private void LoadProducts()
+        private void InitializeFilteredComboBox()
         {
             try
             {
-                _allProducts = _databaseContext.GetAllProducts();
-                cmbProduct.Items.Clear();
-                cmbProduct.Items.Add(new ComboBoxItem { Content = "Select Product", Tag = (int?)null });
+                // Load all products
+                _allProducts = _databaseContext.GetAllProducts().Where(p => p.IsActive).ToList();
                 
-                foreach (var product in _allProducts.Where(p => p.IsActive))
-                {
-                    cmbProduct.Items.Add(new ComboBoxItem 
-                    { 
-                        Content = $"{product.Name} (${product.Price:F2})", 
-                        Tag = product.Id 
-                    });
-                }
+                // Create filter service
+                var filterService = new ItemFilterService(_databaseContext);
                 
-                cmbProduct.SelectedIndex = 0;
+                // Initialize the filtered combo box
+                filteredProductComboBox.Initialize(filterService, _allProducts, new List<Component>());
+                
+                // Set to products only
+                filteredProductComboBox.SetItemType(true);
             }
             catch (Exception ex)
             {
-                ErrorDialog.ShowError($"Error loading products: {ex.Message}", "Database Error");
+                ErrorDialog.ShowError($"Error initializing filtered combo box: {ex.Message}", "Error");
             }
         }
 
@@ -173,7 +172,7 @@ namespace Moonglow_DB.Views
 
         private void btnAddProduct_Click(object sender, RoutedEventArgs e)
         {
-            if (cmbProduct.SelectedItem == null)
+            if (_selectedProduct == null)
             {
                 ErrorDialog.ShowWarning("Please select a product.", "Validation Error");
                 return;
@@ -185,34 +184,18 @@ namespace Moonglow_DB.Views
                 return;
             }
 
-            if (cmbProduct.SelectedItem is ComboBoxItem selectedItem && selectedItem.Tag is int productId)
+            var orderItem = new OrderItem
             {
-                // Find the product in the loaded products list
-                var product = _allProducts.FirstOrDefault(p => p.Id == productId);
-                if (product != null)
-                {
-                    var orderItem = new OrderItem
-                    {
-                        ProductId = product.Id,
-                        ProductName = product.Name,
-                        Quantity = quantity,
-                        UnitPrice = product.Price,
-                        TotalPrice = product.Price * quantity
-                    };
+                ProductId = _selectedProduct.Id,
+                ProductName = _selectedProduct.Name,
+                Quantity = quantity,
+                UnitPrice = _selectedProduct.Price,
+                TotalPrice = _selectedProduct.Price * quantity
+            };
 
-                    _selectedItems.Add(orderItem);
-                    UpdateOrderItemsList();
-                    ClearProductForm();
-                }
-                else
-                {
-                    ErrorDialog.ShowWarning("Selected product not found.", "Validation Error");
-                }
-            }
-            else
-            {
-                ErrorDialog.ShowWarning("Please select a valid product.", "Validation Error");
-            }
+            _selectedItems.Add(orderItem);
+            UpdateOrderItemsList();
+            ClearProductForm();
         }
 
         private void btnRemoveProduct_Click(object sender, RoutedEventArgs e)
@@ -351,10 +334,24 @@ namespace Moonglow_DB.Views
             return "Pending";
         }
 
+        private void UpdateUnitPrice()
+        {
+            if (_selectedProduct != null)
+            {
+                txtUnitPrice.Text = _selectedProduct.Price.ToString("C");
+            }
+            else
+            {
+                txtUnitPrice.Text = string.Empty;
+            }
+        }
+
         private void ClearProductForm()
         {
-            cmbProduct.SelectedIndex = -1;
-            txtQuantity.Text = string.Empty;
+            _selectedProduct = null;
+            filteredProductComboBox.ClearSelection();
+            txtQuantity.Text = "1";
+            txtUnitPrice.Text = string.Empty;
         }
 
         private void btnCancel_Click(object sender, RoutedEventArgs e)
@@ -387,6 +384,20 @@ namespace Moonglow_DB.Views
         private void cmbOrderStatus_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
             // Temporarily disabled
+        }
+
+        private void FilteredProductComboBox_SelectionChanged(object sender, object selectedItem)
+        {
+            if (selectedItem is ComboBoxDisplayItem displayItem && displayItem.Item is Product product)
+            {
+                _selectedProduct = product;
+                UpdateUnitPrice();
+            }
+            else
+            {
+                _selectedProduct = null;
+                txtUnitPrice.Text = string.Empty;
+            }
         }
 
         private void cmbProduct_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)

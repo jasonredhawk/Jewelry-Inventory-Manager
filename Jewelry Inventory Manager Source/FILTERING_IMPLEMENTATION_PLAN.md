@@ -20,22 +20,17 @@
 - **Layout**: Integrated into existing form
 - **Special Features**: Available stock calculation based on selected item and location
 
-### 4. **AddOrderWindow** (High Priority)
-- **Current**: Uses basic ComboBox for product selection
-- **Location**: `Views/AddOrderWindow.xaml`
-- **Changes Needed**:
-  - Add namespace reference
-  - Replace product ComboBox with FilteredComboBox
-  - Update code-behind for initialization
-  - Set item type to Products only (true)
+### 4. **AddOrderWindow** ✅
+- **Status**: Fully implemented with FilteredComboBox
+- **Features**: Search, category filter, location filter, in-stock only
+- **Layout**: Integrated into existing form
+- **Special Features**: Product selection with automatic unit price display
 
-### 5. **ComponentTransformationWindow** (Medium Priority)
-- **Current**: Multiple ComboBoxes for component selection
-- **Location**: `Views/ComponentTransformationWindow.xaml`
-- **Changes Needed**:
-  - Replace component selection ComboBoxes with FilteredComboBoxes
-  - Set item type to Components only (false)
-  - Update multiple selection handlers
+### 5. **ComponentTransformationWindow** ✅
+- **Status**: Fully implemented with FilteredComboBoxes
+- **Features**: Search, category filter, location filter, in-stock only
+- **Layout**: Integrated into existing form
+- **Special Features**: Multiple component selection points (source, add, result, combine result)
 
 ### 6. **AddProductWindow** (Medium Priority)
 - **Current**: Uses ComboBox for component selection

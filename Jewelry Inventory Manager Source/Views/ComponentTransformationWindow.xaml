@@ -1,6 +1,7 @@
 <Window x:Class="Moonglow_DB.Views.ComponentTransformationWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:Controls="clr-namespace:Moonglow_DB.Views.Controls"
         Title="Component Transformation" Height="700" Width="1000"
         WindowStartupLocation="CenterOwner"
         Background="#F5F5F5">
@@ -62,12 +63,14 @@
                         
                         <!-- Break Down Mode -->
                         <StackPanel x:Name="pnlBreakDown" Visibility="Visible">
+                            <!-- Source Component Selection with Filtering -->
+                            <Controls:FilteredComboBox x:Name="filteredSourceComponentComboBox" 
+                                                      Margin="0,0,0,15"
+                                                      SelectionChanged="FilteredSourceComponentComboBox_SelectionChanged"/>
+                            
+                            <!-- Quantity Row -->
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                                <TextBlock Text="Component:" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                <ComboBox x:Name="cmbSourceComponent" Width="300" 
-                                          DisplayMemberPath="Name" SelectedValuePath="Id"
-                                          SelectionChanged="cmbSourceComponent_SelectionChanged"/>
-                                <TextBlock Text="Quantity:" VerticalAlignment="Center" Margin="20,0,10,0"/>
+                                <TextBlock Text="Quantity:" VerticalAlignment="Center" Margin="0,0,10,0"/>
                                 <TextBox x:Name="txtSourceQuantity" Width="80" 
                                          Style="{StaticResource ModernTextBoxStyle}" Text="1"
                                          PreviewTextInput="txtQuantity_PreviewTextInput"/>
@@ -76,16 +79,19 @@
 
                         <!-- Combine Mode -->
                         <StackPanel x:Name="pnlCombine" Visibility="Collapsed">
+                            <!-- Add Component Selection with Filtering -->
+                            <Controls:FilteredComboBox x:Name="filteredAddComponentComboBox" 
+                                                      Margin="0,0,0,15"
+                                                      SelectionChanged="FilteredAddComponentComboBox_SelectionChanged"/>
+                            
+                            <!-- Quantity and Add Button Row -->
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                                <TextBlock Text="Component:" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                <ComboBox x:Name="cmbAddComponent" Width="200" 
-                                          DisplayMemberPath="Name" SelectedValuePath="Id"/>
-                                <TextBlock Text="Quantity:" VerticalAlignment="Center" Margin="20,0,10,0"/>
+                                <TextBlock Text="Quantity:" VerticalAlignment="Center" Margin="0,0,10,0"/>
                                 <TextBox x:Name="txtAddQuantity" Width="80" 
                                          Style="{StaticResource ModernTextBoxStyle}" Text="1"
                                          PreviewTextInput="txtQuantity_PreviewTextInput"/>
                                 <Button x:Name="btnAddComponent" Content="Add" 
-                                        Style="{StaticResource SuccessButtonStyle}" Margin="10,0,0,0"
+                                        Style="{StaticResource SuccessButtonStyle}" Margin="20,0,0,0"
                                         Click="btnAddComponent_Click"/>
                             </StackPanel>
                             
@@ -116,32 +122,38 @@
                         
                         <!-- Break Down Mode -->
                         <StackPanel x:Name="pnlBreakDownResults" Visibility="Visible">
+                            <!-- Result Component Selection with Filtering -->
+                            <Controls:FilteredComboBox x:Name="filteredResultComponentComboBox" 
+                                                      Margin="0,0,0,15"
+                                                      SelectionChanged="FilteredResultComponentComboBox_SelectionChanged"/>
+                            
+                            <!-- Quantity and Add Button Row -->
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                                <TextBlock Text="Component:" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                <ComboBox x:Name="cmbResultComponent" Width="200" 
-                                          DisplayMemberPath="Name" SelectedValuePath="Id"/>
-                                <TextBlock Text="Quantity:" VerticalAlignment="Center" Margin="20,0,10,0"/>
+                                <TextBlock Text="Quantity:" VerticalAlignment="Center" Margin="0,0,10,0"/>
                                 <TextBox x:Name="txtResultQuantity" Width="80" 
                                          Style="{StaticResource ModernTextBoxStyle}" Text="1"
                                          PreviewTextInput="txtQuantity_PreviewTextInput"/>
                                 <Button x:Name="btnAddResult" Content="Add Result" 
-                                        Style="{StaticResource SuccessButtonStyle}" Margin="10,0,0,0"
+                                        Style="{StaticResource SuccessButtonStyle}" Margin="20,0,0,0"
                                         Click="btnAddResult_Click"/>
                             </StackPanel>
                         </StackPanel>
 
                         <!-- Combine Mode -->
                         <StackPanel x:Name="pnlCombineResults" Visibility="Collapsed">
+                            <!-- Combine Result Component Selection with Filtering -->
+                            <Controls:FilteredComboBox x:Name="filteredCombineResultComponentComboBox" 
+                                                      Margin="0,0,0,15"
+                                                      SelectionChanged="FilteredCombineResultComponentComboBox_SelectionChanged"/>
+                            
+                            <!-- Quantity and Add Button Row -->
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                                <TextBlock Text="Result Component:" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                <ComboBox x:Name="cmbCombineResultComponent" Width="300" 
-                                          DisplayMemberPath="Name" SelectedValuePath="Id"/>
-                                <TextBlock Text="Quantity:" VerticalAlignment="Center" Margin="20,0,10,0"/>
+                                <TextBlock Text="Quantity:" VerticalAlignment="Center" Margin="0,0,10,0"/>
                                 <TextBox x:Name="txtCombineResultQuantity" Width="80" 
                                          Style="{StaticResource ModernTextBoxStyle}" Text="1"
                                          PreviewTextInput="txtQuantity_PreviewTextInput"/>
                                 <Button x:Name="btnAddCombineResult" Content="Add Result" 
-                                        Style="{StaticResource SuccessButtonStyle}" Margin="10,0,0,0"
+                                        Style="{StaticResource SuccessButtonStyle}" Margin="20,0,0,0"
                                         Click="btnAddCombineResult_Click"/>
                             </StackPanel>
                         </StackPanel>
