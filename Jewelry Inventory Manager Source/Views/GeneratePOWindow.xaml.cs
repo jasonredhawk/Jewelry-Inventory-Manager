@@ -15,16 +15,16 @@ namespace Moonglow_DB.Views
     public partial class GeneratePOWindow : Window
     {
         private readonly DatabaseContext _databaseContext;
-        private List<InventoryItem> _allItems;
-        private List<InventoryItem> _filteredItems;
-        private List<InventoryItem> _selectedItems;
+        private List<LocationInventoryItem> _allItems;
+        private List<LocationInventoryItem> _filteredItems;
+        private List<LocationInventoryItem> _selectedItems;
         private DispatcherTimer _updateTimer;
 
         public GeneratePOWindow(DatabaseContext databaseContext)
         {
             InitializeComponent();
             _databaseContext = databaseContext;
-            _selectedItems = new List<InventoryItem>();
+            _selectedItems = new List<LocationInventoryItem>();
             
             // Initialize update timer
             _updateTimer = new DispatcherTimer();
@@ -32,6 +32,7 @@ namespace Moonglow_DB.Views
             _updateTimer.Tick += UpdateTimer_Tick;
             _updateTimer.Start();
             
+            LoadLocations();
             LoadData();
         }
 
@@ -39,6 +40,25 @@ namespace Moonglow_DB.Views
         {
             UpdateSelectedItems();
             UpdateSummaryCards();
+        }
+
+        private void LoadLocations()
+        {
+            try
+            {
+                var locations = _databaseContext.GetAllLocations();
+                cmbLocationFilter.Items.Clear();
+                cmbLocationFilter.Items.Add(new ComboBoxItem { Content = "All Locations", IsSelected = true });
+                
+                foreach (var location in locations.Where(l => l.IsActive))
+                {
+                    cmbLocationFilter.Items.Add(new ComboBoxItem { Content = location.Name, Tag = location.Id });
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrorDialog.ShowError($"Error loading locations: {ex.Message}", "Error");
+            }
         }
 
         private void LoadData()
@@ -65,7 +85,7 @@ namespace Moonglow_DB.Views
 
         private void InventoryItem_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(InventoryItem.IsSelected))
+            if (e.PropertyName == nameof(LocationInventoryItem.IsSelected))
             {
                 // Use BeginInvoke to avoid conflicts with edit transactions
                 Dispatcher.BeginInvoke(new Action(() =>
@@ -78,66 +98,125 @@ namespace Moonglow_DB.Views
             }
         }
 
-        private List<InventoryItem> GetAllLowStockItems()
+        private List<LocationInventoryItem> GetAllLowStockItems()
         {
-            var items = new List<InventoryItem>();
+            var items = new List<LocationInventoryItem>();
+            var locations = _databaseContext.GetAllLocations();
             
-            using var connection = _databaseContext.GetConnection();
-            
-            // Get Products with low stock
-            var productSql = @"
-                SELECT Id, SKU, Name, Description, Price, CurrentStock, MinimumStock, IsActive, LastModified 
-                FROM Products 
-                WHERE IsActive = 1 AND (CurrentStock <= MinimumStock OR CurrentStock = 0)
-                ORDER BY Name";
-            using var productCommand = new MySqlCommand(productSql, connection);
-            using var productReader = productCommand.ExecuteReader();
-            
-            while (productReader.Read())
+            // Get all products and check their stock across all locations
+            var products = _databaseContext.GetAllProducts();
+            foreach (var product in products.Where(p => p.IsActive))
             {
-                items.Add(new InventoryItem
+                var totalStock = 0;
+                var totalMinStock = 0;
+                var hasLowStock = false;
+                
+                // Calculate total stock across all locations
+                foreach (var location in locations.Where(l => l.IsActive))
                 {
-                    Id = productReader.GetInt32(0),
-                    SKU = productReader.GetString(1),
-                    Name = productReader.GetString(2),
-                    Description = productReader.IsDBNull(3) ? "" : productReader.GetString(3),
-                    ItemType = "Product",
-                    Price = productReader.GetDecimal(4),
-                    CurrentStock = productReader.GetInt32(5),
-                    MinimumStock = productReader.GetInt32(6),
-                    IsActive = productReader.GetBoolean(7),
-                    LastModified = productReader.GetDateTime(8),
-                    IsSelected = false
-                });
+                    var productStock = _databaseContext.GetProductStock(product.Id, location.Id);
+                    var minStock = _databaseContext.GetMinimumStock("Product", product.Id, location.Id);
+                    
+                    totalStock += productStock;
+                    totalMinStock += minStock;
+                    
+                    // Check if this location has low stock
+                    if (productStock <= minStock || productStock == 0)
+                    {
+                        hasLowStock = true;
+                    }
+                }
+                
+                // Only add products that have low stock in at least one location
+                if (hasLowStock)
+                {
+                    // Create an item for each location that has low stock
+                    foreach (var location in locations.Where(l => l.IsActive))
+                    {
+                        var productStock = _databaseContext.GetProductStock(product.Id, location.Id);
+                        var minStock = _databaseContext.GetMinimumStock("Product", product.Id, location.Id);
+                        
+                        // Only add if this location has low stock
+                        if (productStock <= minStock || productStock == 0)
+                        {
+                            items.Add(new LocationInventoryItem
+                            {
+                                Id = product.Id,
+                                SKU = product.SKU,
+                                Name = product.Name,
+                                Description = product.Description ?? "",
+                                ItemType = "Product",
+                                LocationId = location.Id,
+                                LocationName = location.Name,
+                                Price = product.Price,
+                                CurrentStock = productStock,
+                                TotalStockAcrossLocations = totalStock,
+                                MinimumStock = minStock,
+                                IsActive = product.IsActive,
+                                LastModified = product.LastModified,
+                                IsSelected = false
+                            });
+                        }
+                    }
+                }
             }
             
-            productReader.Close();
-            
-            // Get Components with low stock
-            var componentSql = @"
-                SELECT Id, SKU, Name, Description, Cost, CurrentStock, MinimumStock, IsActive, LastModified 
-                FROM Components 
-                WHERE IsActive = 1 AND (CurrentStock <= MinimumStock OR CurrentStock = 0)
-                ORDER BY Name";
-            using var componentCommand = new MySqlCommand(componentSql, connection);
-            using var componentReader = componentCommand.ExecuteReader();
-            
-            while (componentReader.Read())
+            // Get all components and check their stock across all locations
+            var components = _databaseContext.GetAllComponents();
+            foreach (var component in components.Where(c => c.IsActive))
             {
-                items.Add(new InventoryItem
+                var totalStock = 0;
+                var totalMinStock = 0;
+                var hasLowStock = false;
+                
+                // Calculate total stock across all locations
+                foreach (var location in locations.Where(l => l.IsActive))
                 {
-                    Id = componentReader.GetInt32(0),
-                    SKU = componentReader.GetString(1),
-                    Name = componentReader.GetString(2),
-                    Description = componentReader.IsDBNull(3) ? "" : componentReader.GetString(3),
-                    ItemType = "Component",
-                    Cost = componentReader.GetDecimal(4),
-                    CurrentStock = componentReader.GetInt32(5),
-                    MinimumStock = componentReader.GetInt32(6),
-                    IsActive = componentReader.GetBoolean(7),
-                    LastModified = componentReader.GetDateTime(8),
-                    IsSelected = false
-                });
+                    var componentStock = _databaseContext.GetComponentStock(component.Id, location.Id);
+                    var minStock = _databaseContext.GetMinimumStock("Component", component.Id, location.Id);
+                    
+                    totalStock += componentStock;
+                    totalMinStock += minStock;
+                    
+                    // Check if this location has low stock
+                    if (componentStock <= minStock || componentStock == 0)
+                    {
+                        hasLowStock = true;
+                    }
+                }
+                
+                // Only add components that have low stock in at least one location
+                if (hasLowStock)
+                {
+                    // Create an item for each location that has low stock
+                    foreach (var location in locations.Where(l => l.IsActive))
+                    {
+                        var componentStock = _databaseContext.GetComponentStock(component.Id, location.Id);
+                        var minStock = _databaseContext.GetMinimumStock("Component", component.Id, location.Id);
+                        
+                        // Only add if this location has low stock
+                        if (componentStock <= minStock || componentStock == 0)
+                        {
+                            items.Add(new LocationInventoryItem
+                            {
+                                Id = component.Id,
+                                SKU = component.SKU,
+                                Name = component.Name,
+                                Description = component.Description ?? "",
+                                ItemType = "Component",
+                                LocationId = location.Id,
+                                LocationName = location.Name,
+                                Cost = component.Cost,
+                                CurrentStock = componentStock,
+                                TotalStockAcrossLocations = totalStock,
+                                MinimumStock = minStock,
+                                IsActive = component.IsActive,
+                                LastModified = component.LastModified,
+                                IsSelected = false
+                            });
+                        }
+                    }
+                }
             }
             
             return items.OrderBy(i => i.Name).ToList();
@@ -161,8 +240,26 @@ namespace Moonglow_DB.Views
             var totalValue = _selectedItems.Sum(i => 
             {
                 var quantityToOrder = Math.Max(i.MinimumStock - i.CurrentStock, 1);
-                var unitPrice = i.ItemType == "Product" ? i.Price : i.Cost;
-                return quantityToOrder * unitPrice;
+                
+                if (i.ItemType == "Product")
+                {
+                    // For products, calculate based on their components
+                    var productComponents = _databaseContext.GetProductComponents(i.Id);
+                    return productComponents.Sum(c => 
+                    {
+                        var componentQuantity = quantityToOrder * c.Quantity;
+                        var componentItem = _allItems.FirstOrDefault(item => 
+                            item.ItemType == "Component" && 
+                            item.Id == c.ComponentId && 
+                            item.LocationId == i.LocationId);
+                        return componentItem?.Cost * componentQuantity ?? 0;
+                    });
+                }
+                else
+                {
+                    // For components, use their cost
+                    return quantityToOrder * i.Cost;
+                }
             });
             
             var selectedCount = _selectedItems.Count;
@@ -188,6 +285,11 @@ namespace Moonglow_DB.Views
             ApplyFilter();
         }
 
+        private void cmbLocationFilter_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            ApplyFilter();
+        }
+
         private void ApplyFilter()
         {
             if (_allItems == null)
@@ -195,6 +297,8 @@ namespace Moonglow_DB.Views
 
             var searchText = txtSearch.Text.ToLower();
             var filterType = (cmbFilter.SelectedItem as ComboBoxItem)?.Content.ToString();
+            var locationFilter = (cmbLocationFilter.SelectedItem as ComboBoxItem)?.Content.ToString();
+            var selectedLocationId = (cmbLocationFilter.SelectedItem as ComboBoxItem)?.Tag as int?;
 
             _filteredItems = _allItems.Where(item =>
             {
@@ -205,6 +309,7 @@ namespace Moonglow_DB.Views
 
                 var matchesFilter = filterType switch
                 {
+                    "Low & Out of Stock" or "Low &amp; Out of Stock" => (item.CurrentStock <= item.MinimumStock || item.CurrentStock == 0),
                     "Low Stock Only" => item.CurrentStock > 0 && item.CurrentStock <= item.MinimumStock,
                     "Out of Stock Only" => item.CurrentStock <= 0,
                     "Products Only" => item.ItemType == "Product",
@@ -212,7 +317,10 @@ namespace Moonglow_DB.Views
                     _ => true
                 };
 
-                return matchesSearch && matchesFilter;
+                var matchesLocation = locationFilter == "All Locations" || locationFilter == null || 
+                                    (selectedLocationId.HasValue && item.LocationId == selectedLocationId.Value);
+
+                return matchesSearch && matchesFilter && matchesLocation;
             }).ToList();
 
             // Subscribe to property changes for filtered items
@@ -298,41 +406,93 @@ namespace Moonglow_DB.Views
             // Write header
             csv.WriteField("Purchase Order Number");
             csv.WriteField("Date");
+            csv.WriteField("Location");
             csv.WriteField("Item Type");
             csv.WriteField("SKU");
             csv.WriteField("Name");
             csv.WriteField("Description");
-            csv.WriteField("Current Stock");
+            csv.WriteField("Location Stock");
+            csv.WriteField("Total Stock");
             csv.WriteField("Minimum Stock");
             csv.WriteField("Quantity to Order");
             csv.WriteField("Unit Price/Cost");
             csv.WriteField("Total Line Value");
+            csv.WriteField("Notes");
             csv.NextRecord();
 
             var totalValue = 0m;
+            var processedItems = new List<string>(); // Track processed items to avoid duplicates
 
             foreach (var item in _selectedItems)
             {
-                var quantityToOrder = Math.Max(item.MinimumStock - item.CurrentStock, 1);
-                var unitPrice = item.ItemType == "Product" ? item.Price : item.Cost;
-                var lineValue = quantityToOrder * unitPrice;
-                totalValue += lineValue;
+                if (item.ItemType == "Product")
+                {
+                    // For products, add their components to the PO
+                    var productComponents = _databaseContext.GetProductComponents(item.Id);
+                    var quantityToOrder = Math.Max(item.MinimumStock - item.CurrentStock, 1);
+                    
+                    foreach (var component in productComponents)
+                    {
+                        var componentItem = _allItems.FirstOrDefault(i => 
+                            i.ItemType == "Component" && 
+                            i.Id == component.ComponentId && 
+                            i.LocationId == item.LocationId);
+                        
+                        if (componentItem != null)
+                        {
+                            var componentQuantityToOrder = quantityToOrder * component.Quantity;
+                            var componentUnitPrice = componentItem.Cost;
+                            var componentLineValue = componentQuantityToOrder * componentUnitPrice;
+                            totalValue += componentLineValue;
 
-                csv.WriteField(poNumber);
-                csv.WriteField(poDate.ToString("yyyy-MM-dd"));
-                csv.WriteField(item.ItemType);
-                csv.WriteField(item.SKU);
-                csv.WriteField(item.Name);
-                csv.WriteField(item.Description);
-                csv.WriteField(item.CurrentStock);
-                csv.WriteField(item.MinimumStock);
-                csv.WriteField(quantityToOrder);
-                csv.WriteField(unitPrice.ToString("C"));
-                csv.WriteField(lineValue.ToString("C"));
-                csv.NextRecord();
+                            csv.WriteField(poNumber);
+                            csv.WriteField(poDate.ToString("yyyy-MM-dd"));
+                            csv.WriteField(item.LocationName);
+                            csv.WriteField("Component");
+                            csv.WriteField(componentItem.SKU);
+                            csv.WriteField(componentItem.Name);
+                            csv.WriteField(componentItem.Description);
+                            csv.WriteField(componentItem.CurrentStock);
+                            csv.WriteField(componentItem.TotalStockAcrossLocations);
+                            csv.WriteField(componentItem.MinimumStock);
+                            csv.WriteField(componentQuantityToOrder);
+                            csv.WriteField(componentUnitPrice.ToString("C"));
+                            csv.WriteField(componentLineValue.ToString("C"));
+                            csv.WriteField($"For Product: {item.Name} (Qty: {quantityToOrder})");
+                            csv.NextRecord();
+                        }
+                    }
+                }
+                else
+                {
+                    // For components, add directly to PO
+                    var quantityToOrder = Math.Max(item.MinimumStock - item.CurrentStock, 1);
+                    var unitPrice = item.Cost;
+                    var lineValue = quantityToOrder * unitPrice;
+                    totalValue += lineValue;
+
+                    csv.WriteField(poNumber);
+                    csv.WriteField(poDate.ToString("yyyy-MM-dd"));
+                    csv.WriteField(item.LocationName);
+                    csv.WriteField(item.ItemType);
+                    csv.WriteField(item.SKU);
+                    csv.WriteField(item.Name);
+                    csv.WriteField(item.Description);
+                    csv.WriteField(item.CurrentStock);
+                    csv.WriteField(item.TotalStockAcrossLocations);
+                    csv.WriteField(item.MinimumStock);
+                    csv.WriteField(quantityToOrder);
+                    csv.WriteField(unitPrice.ToString("C"));
+                    csv.WriteField(lineValue.ToString("C"));
+                    csv.WriteField("");
+                    csv.NextRecord();
+                }
             }
 
             // Write summary
+            csv.WriteField("");
+            csv.WriteField("");
+            csv.WriteField("");
             csv.WriteField("");
             csv.WriteField("");
             csv.WriteField("");

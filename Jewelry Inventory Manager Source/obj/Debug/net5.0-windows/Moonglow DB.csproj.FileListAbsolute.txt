@@ -210,4 +210,4 @@ C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manage
 C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Moonglow DB.pdb
 C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Moonglow DB.genruntimeconfig.cache
 C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\ref\Moonglow DB.dll
-C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\refint\Moonglow DB.dll
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\bin\Debug\net5.0-windows\ref\Moonglow DB.dll

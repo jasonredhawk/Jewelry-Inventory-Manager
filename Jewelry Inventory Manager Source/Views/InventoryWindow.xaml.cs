@@ -249,8 +249,29 @@ namespace Moonglow_DB.Views
 
         private void btnGeneratePO_Click(object sender, RoutedEventArgs e)
         {
-            // TODO: Implement Purchase Order generation
-            ErrorDialog.ShowInformation("Purchase Order generation feature is not yet implemented.", "Feature Not Available");
+            try
+            {
+                // Create a new database context for the GeneratePOWindow
+                var settings = SettingsManager.LoadSettings();
+                var connectionString = SettingsManager.BuildConnectionString(settings);
+                var dbContext = new DatabaseContext(connectionString);
+                
+                var generatePOWindow = new GeneratePOWindow(dbContext);
+                var result = generatePOWindow.ShowDialog();
+                
+                // Dispose the database context after the window is closed
+                dbContext.Dispose();
+                
+                if (result == true)
+                {
+                    // Refresh the data to show updated stock values
+                    LoadInventoryData();
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrorDialog.ShowError($"Error in InventoryWindow.btnGeneratePO_Click(): {ex.Message}\n\nStack Trace: {ex.StackTrace}", "Error");
+            }
         }
 
         private void cmbFilter_SelectionChanged(object sender, SelectionChangedEventArgs e)

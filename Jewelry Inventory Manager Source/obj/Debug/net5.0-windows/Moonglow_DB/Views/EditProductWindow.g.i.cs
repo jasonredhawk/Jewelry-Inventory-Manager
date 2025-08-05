@@ -149,7 +149,7 @@ namespace Moonglow_DB.Views {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/Moonglow DB;component/moonglow_db/views/editproductwindow.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/Moonglow DB;V1.0.0.0;component/moonglow_db/views/editproductwindow.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\..\..\Moonglow_DB\Views\EditProductWindow.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);
