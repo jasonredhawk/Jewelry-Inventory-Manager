@@ -95,50 +95,64 @@
 
                     <!-- Toolbar -->
                     <Border Grid.Row="2" Background="White" Padding="15" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1">
-                        <StackPanel Orientation="Horizontal">
-                            <Button x:Name="btnRefresh" 
-                                    Content="🔄 Refresh" 
-                                    Style="{StaticResource ModernButtonStyle}"
-                                    Click="btnRefresh_Click"/>
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
                             
-                            <Button x:Name="btnAddTransaction" 
-                                    Content="➕ Add Transaction" 
-                                    Style="{StaticResource SuccessButtonStyle}"
-                                    Click="btnAddTransaction_Click"/>
+                            <!-- Action Buttons Row -->
+                            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
+                                <Button x:Name="btnRefresh" 
+                                        Content="🔄 Refresh" 
+                                        Style="{StaticResource ModernButtonStyle}"
+                                        Click="btnRefresh_Click"/>
+                                
+                                <Button x:Name="btnAddTransaction" 
+                                        Content="➕ Add Transaction" 
+                                        Style="{StaticResource SuccessButtonStyle}"
+                                        Click="btnAddTransaction_Click"/>
+                                
+                                <Button x:Name="btnTransfer" 
+                                        Content="🚚 Bulk Transfer" 
+                                        Style="{StaticResource WarningButtonStyle}"
+                                        Click="btnTransfer_Click"/>
+                                
+                                                             <Button x:Name="btnGeneratePO" 
+                                     Content="📋 Generate PO" 
+                                     Style="{StaticResource ModernButtonStyle}"
+                                     Click="btnGeneratePO_Click"/>
+                             
+                             <Button x:Name="btnSetMinimumStock" 
+                                     Content="⚙️ Set Minimum Stock" 
+                                     Style="{StaticResource ModernButtonStyle}"
+                                     Click="btnSetMinimumStock_Click"/>
+                            </StackPanel>
                             
-                            <Button x:Name="btnTransfer" 
-                                    Content="🚚 Transfer" 
-                                    Style="{StaticResource WarningButtonStyle}"
-                                    Click="btnTransfer_Click"/>
-                            
-                            <Button x:Name="btnGeneratePO" 
-                                    Content="📋 Generate PO" 
-                                    Style="{StaticResource ModernButtonStyle}"
-                                    Click="btnGeneratePO_Click"/>
-                            
-                            <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="20,0"/>
-                            
-                            <TextBlock Text="Location:" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                            <ComboBox x:Name="cmbLocationFilter" Width="150" Margin="0,0,10,0" SelectionChanged="cmbLocationFilter_SelectionChanged">
-                                <ComboBoxItem Content="All Locations" IsSelected="True"/>
-                            </ComboBox>
-                            
-                            <TextBlock Text="Filter:" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                            <ComboBox x:Name="cmbFilter" Width="150" Margin="0,0,10,0" SelectionChanged="cmbFilter_SelectionChanged">
-                                <ComboBoxItem Content="All Items" IsSelected="True"/>
-                                <ComboBoxItem Content="Low Stock"/>
-                                <ComboBoxItem Content="Out of Stock"/>
-                                <ComboBoxItem Content="Products Only"/>
-                                <ComboBoxItem Content="Components Only"/>
-                            </ComboBox>
-                            
-                            <TextBlock Text="Search:" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                            <TextBox x:Name="txtSearch" 
-                                     Width="200" 
-                                     Style="{StaticResource ModernTextBoxStyle}"
-                                     TextChanged="txtSearch_TextChanged"
-                                     VerticalAlignment="Center"/>
-                        </StackPanel>
+                            <!-- Filters Row -->
+                            <StackPanel Grid.Row="1" Orientation="Horizontal">
+                                <TextBlock Text="Location:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <ComboBox x:Name="cmbLocationFilter" Width="150" Margin="0,0,15,0" SelectionChanged="cmbLocationFilter_SelectionChanged">
+                                    <ComboBoxItem Content="All Locations" IsSelected="True"/>
+                                </ComboBox>
+                                
+                                <TextBlock Text="Filter:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <ComboBox x:Name="cmbFilter" Width="150" Margin="0,0,15,0" SelectionChanged="cmbFilter_SelectionChanged">
+                                    <ComboBoxItem Content="All Items" IsSelected="True"/>
+                                    <ComboBoxItem Content="Low Stock"/>
+                                    <ComboBoxItem Content="Out of Stock"/>
+                                    <ComboBoxItem Content="Products Only"/>
+                                    <ComboBoxItem Content="Components Only"/>
+                                </ComboBox>
+                                
+                                <TextBlock Text="Search:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <TextBox x:Name="txtSearch" 
+                                         Width="200" 
+                                         Style="{StaticResource ModernTextBoxStyle}"
+                                         TextChanged="txtSearch_TextChanged"
+                                         VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Grid>
                     </Border>
 
                     <!-- Inventory DataGrid -->
@@ -168,85 +182,7 @@
                 </Grid>
             </TabItem>
 
-            <!-- Location Inventory Tab -->
-            <TabItem Header="🏢 Location Inventory">
-                <Grid Margin="10">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
 
-                    <!-- Location Inventory Toolbar -->
-                    <Border Grid.Row="0" Background="White" Padding="15" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1">
-                        <StackPanel Orientation="Horizontal">
-                            <Button x:Name="btnRefreshLocationInventory" 
-                                    Content="🔄 Refresh" 
-                                    Style="{StaticResource ModernButtonStyle}"
-                                    Click="btnRefreshLocationInventory_Click"/>
-                            
-                            <Button x:Name="btnTransferBetweenLocations" 
-                                    Content="🚚 Transfer Between Locations" 
-                                    Style="{StaticResource WarningButtonStyle}"
-                                    Click="btnTransferBetweenLocations_Click"/>
-                            
-                            <Button x:Name="btnSetMinimumStock" 
-                                    Content="⚙️ Set Minimum Stock" 
-                                    Style="{StaticResource ModernButtonStyle}"
-                                    Click="btnSetMinimumStock_Click"/>
-                            
-                            <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="20,0"/>
-                            
-                            <TextBlock Text="Location:" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                            <ComboBox x:Name="cmbLocationFilter2" Width="150" Margin="0,0,10,0" SelectionChanged="cmbLocationFilter2_SelectionChanged">
-                                <ComboBoxItem Content="All Locations" IsSelected="True"/>
-                            </ComboBox>
-                            
-                            <TextBlock Text="Filter:" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                            <ComboBox x:Name="cmbFilter2" Width="150" Margin="0,0,10,0" SelectionChanged="cmbFilter2_SelectionChanged">
-                                <ComboBoxItem Content="All Items" IsSelected="True"/>
-                                <ComboBoxItem Content="Low Stock"/>
-                                <ComboBoxItem Content="Out of Stock"/>
-                                <ComboBoxItem Content="Products Only"/>
-                                <ComboBoxItem Content="Components Only"/>
-                            </ComboBox>
-                            
-                            <TextBlock Text="Search:" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                            <TextBox x:Name="txtSearch2" 
-                                     Width="200" 
-                                     Style="{StaticResource ModernTextBoxStyle}"
-                                     TextChanged="txtSearch2_TextChanged"
-                                     VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Border>
-
-                    <!-- Location Inventory DataGrid -->
-                    <DataGrid x:Name="dgLocationInventory" 
-                              Grid.Row="1" 
-                              Margin="0,15,0,0"
-                              AutoGenerateColumns="False"
-                              CanUserAddRows="False"
-                              CanUserDeleteRows="False"
-                              SelectionMode="Single"
-                              SelectionChanged="dgLocationInventory_SelectionChanged"
-                              Background="White"
-                              BorderBrush="#E0E0E0"
-                              GridLinesVisibility="Horizontal"
-                              HeadersVisibility="Column">
-                        
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="Type" Binding="{Binding ItemType}" Width="80"/>
-                            <DataGridTextColumn Header="SKU" Binding="{Binding SKU}" Width="120"/>
-                            <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="200"/>
-                            <DataGridTextColumn Header="Location" Binding="{Binding LocationName}" Width="120"/>
-                            <DataGridTextColumn Header="Location Stock" Binding="{Binding CurrentStock}" Width="100"/>
-                            <DataGridTextColumn Header="Total Stock" Binding="{Binding TotalStockAcrossLocations}" Width="100"/>
-                            <DataGridTextColumn Header="Min Stock" Binding="{Binding MinimumStock}" Width="100"/>
-                            <DataGridTextColumn Header="Status" Binding="{Binding StockStatus}" Width="100"/>
-                            <DataGridTextColumn Header="Last Updated" Binding="{Binding LastModified, StringFormat=MM/dd/yyyy}" Width="120"/>
-                        </DataGrid.Columns>
-                    </DataGrid>
-                </Grid>
-            </TabItem>
 
             <!-- Transactions Tab -->
             <TabItem Header="📝 Transactions">

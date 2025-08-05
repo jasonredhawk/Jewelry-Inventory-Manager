@@ -2,7 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:Controls="clr-namespace:Moonglow_DB.Views.Controls"
-        Title="Inventory Transfer" Height="500" Width="700"
+        Title="Bulk Inventory Transfer" Height="700" Width="1000"
         WindowStartupLocation="CenterOwner"
         Background="#F5F5F5">
     
@@ -25,7 +25,7 @@
         <Border Grid.Row="0" Background="#FF9800" Padding="15">
             <StackPanel Orientation="Horizontal">
                 <TextBlock Text="🚚" FontSize="24" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                <TextBlock Text="Inventory Transfer" 
+                <TextBlock Text="Bulk Inventory Transfer" 
                            FontSize="20" 
                            FontWeight="Bold" 
                            Foreground="White" 
@@ -33,68 +33,167 @@
             </StackPanel>
         </Border>
 
-        <!-- Form -->
-        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-            <StackPanel Margin="20" VerticalAlignment="Top">
-                
-                <!-- Item Type -->
-                <TextBlock Text="Item Type *" FontWeight="Bold" Margin="0,0,0,5"/>
-                <ComboBox x:Name="cmbItemType" 
-                          Style="{StaticResource ModernComboBoxStyle}"
-                          SelectionChanged="cmbItemType_SelectionChanged"
-                          Margin="0,0,0,15"/>
+        <!-- Main Content -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
 
-                <!-- Item Selection with Filtering -->
-                <Controls:FilteredComboBox x:Name="filteredItemComboBox" 
-                                          SelectionChanged="FilteredItemComboBox_SelectionChanged"/>
+            <!-- Left Panel - Transfer Setup -->
+            <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto">
+                <StackPanel Margin="20" VerticalAlignment="Top">
+                    
+                    <!-- Help Information -->
+                    <Border Background="#E3F2FD" BorderBrush="#2196F3" BorderThickness="1" 
+                            CornerRadius="5" Padding="15" Margin="0,0,0,20">
+                        <StackPanel>
+                            <TextBlock Text="📋 Bulk Transfer Guide" FontWeight="Bold" FontSize="14" 
+                                       Foreground="#1976D2" Margin="0,0,0,10"/>
+                            <TextBlock Text="• Add items to the transfer list using the controls below" 
+                                       FontSize="12" Margin="0,0,0,5"/>
+                            <TextBlock Text="• Products will automatically transfer their components" 
+                                       FontSize="12" Margin="0,0,0,5"/>
+                            <TextBlock Text="• Transfers have states: Created → In Transit → Delivered → Completed" 
+                                       FontSize="12" Margin="0,0,0,5"/>
+                            <TextBlock Text="• Stock is only updated when the transfer is completed" 
+                                       FontSize="12" Margin="0,0,0,5"/>
+                        </StackPanel>
+                    </Border>
 
-                <!-- From Location -->
-                <TextBlock Text="From Location *" FontWeight="Bold" Margin="0,0,0,5"/>
-                <ComboBox x:Name="cmbFromLocation" 
-                          Style="{StaticResource ModernComboBoxStyle}"
-                          SelectionChanged="cmbFromLocation_SelectionChanged"
-                          Margin="0,0,0,15"/>
+                    <!-- Transfer Details -->
+                    <TextBlock Text="Transfer Details" FontWeight="Bold" FontSize="16" Margin="0,0,0,10"/>
+                    
+                    <!-- From Location -->
+                    <TextBlock Text="From Location *" FontWeight="Bold" Margin="0,0,0,5"/>
+                    <ComboBox x:Name="cmbFromLocation" 
+                              Style="{StaticResource ModernComboBoxStyle}"
+                              SelectionChanged="cmbFromLocation_SelectionChanged"
+                              Margin="0,0,0,15"/>
 
-                <!-- To Location -->
-                <TextBlock Text="To Location *" FontWeight="Bold" Margin="0,0,0,5"/>
-                <ComboBox x:Name="cmbToLocation" 
-                          Style="{StaticResource ModernComboBoxStyle}"
-                          Margin="0,0,0,15"/>
+                    <!-- To Location -->
+                    <TextBlock Text="To Location *" FontWeight="Bold" Margin="0,0,0,5"/>
+                    <ComboBox x:Name="cmbToLocation" 
+                              Style="{StaticResource ModernComboBoxStyle}"
+                              Margin="0,0,0,15"/>
 
-                <!-- Available Stock -->
-                <TextBlock Text="Available Stock" FontWeight="Bold" Margin="0,0,0,5"/>
-                <TextBlock x:Name="txtAvailableStock" 
-                           Text="0" 
-                           FontSize="16" 
-                           Foreground="#2196F3"
-                           Margin="0,0,0,15"/>
+                    <!-- Item Addition Section -->
+                    <TextBlock Text="Add Items to Transfer" FontWeight="Bold" FontSize="16" Margin="0,20,0,10"/>
+                    
+                    <!-- Item Type -->
+                    <TextBlock Text="Item Type" FontWeight="Bold" Margin="0,0,0,5"/>
+                    <ComboBox x:Name="cmbItemType" 
+                              Style="{StaticResource ModernComboBoxStyle}"
+                              SelectionChanged="cmbItemType_SelectionChanged"
+                              Margin="0,0,0,15"/>
 
-                <!-- Transfer Quantity -->
-                <TextBlock Text="Transfer Quantity *" FontWeight="Bold" Margin="0,0,0,5"/>
-                <TextBox x:Name="txtTransferQuantity" 
-                         Style="{StaticResource ModernTextBoxStyle}"
-                         Text="0"
-                         PreviewTextInput="txtTransferQuantity_PreviewTextInput"
-                         Margin="0,0,0,15"/>
+                    <!-- Item Selection -->
+                    <TextBlock Text="Item *" FontWeight="Bold" Margin="0,0,0,5"/>
+                    <Controls:FilteredComboBox x:Name="filteredItemComboBox" 
+                                              SelectionChanged="FilteredItemComboBox_SelectionChanged"
+                                              Margin="0,0,0,15"/>
 
-                <!-- Notes -->
-                <TextBlock Text="Notes" FontWeight="Bold" Margin="0,0,0,5"/>
-                <TextBox x:Name="txtNotes" 
-                         Style="{StaticResource ModernTextBoxStyle}"
-                         Height="80"
-                         TextWrapping="Wrap"
-                         AcceptsReturn="True"
-                         VerticalScrollBarVisibility="Auto"
-                         Margin="0,0,0,15"/>
+                    <!-- Available Stock -->
+                    <TextBlock Text="Available Stock" FontWeight="Bold" Margin="0,0,0,5"/>
+                    <TextBlock x:Name="txtAvailableStock" 
+                               Text="0" 
+                               FontSize="16" 
+                               Foreground="#2196F3"
+                               Margin="0,0,0,15"/>
 
-            </StackPanel>
-        </ScrollViewer>
+                    <!-- Transfer Quantity -->
+                    <TextBlock Text="Transfer Quantity *" FontWeight="Bold" Margin="0,0,0,5"/>
+                    <TextBox x:Name="txtTransferQuantity" 
+                             Style="{StaticResource ModernTextBoxStyle}"
+                             Text="1"
+                             PreviewTextInput="txtTransferQuantity_PreviewTextInput"
+                             Margin="0,0,0,15"/>
 
-        <!-- Buttons -->
+                    <!-- Add Item Button -->
+                    <Button x:Name="btnAddItem" Content="➕ Add to Transfer List" 
+                            Style="{StaticResource SuccessButtonStyle}"
+                            Click="btnAddItem_Click"
+                            Margin="0,0,0,20"/>
+
+                    <!-- Notes -->
+                    <TextBlock Text="Transfer Notes" FontWeight="Bold" Margin="0,0,0,5"/>
+                    <TextBox x:Name="txtNotes" 
+                             Style="{StaticResource ModernTextBoxStyle}"
+                             Height="80"
+                             TextWrapping="Wrap"
+                             AcceptsReturn="True"
+                             VerticalScrollBarVisibility="Auto"
+                             Margin="0,0,0,15"/>
+
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Divider -->
+            <GridSplitter Grid.Column="1" Width="5" Background="#E0E0E0" HorizontalAlignment="Center"/>
+
+            <!-- Right Panel - Transfer List and Management -->
+            <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto">
+                <StackPanel Margin="20" VerticalAlignment="Top">
+                    
+                    <!-- Transfer List Header -->
+                    <TextBlock Text="Transfer List" FontWeight="Bold" FontSize="16" Margin="0,0,0,10"/>
+                    
+                    <!-- Transfer List -->
+                    <Border BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="5" 
+                            Height="300" Margin="0,0,0,15">
+                        <ListView x:Name="lstTransferItems" 
+                                  Background="Transparent"
+                                  BorderThickness="0">
+                            <ListView.View>
+                                <GridView>
+                                    <GridViewColumn Header="Item" Width="150" DisplayMemberBinding="{Binding DisplayName}"/>
+                                    <GridViewColumn Header="Type" Width="80" DisplayMemberBinding="{Binding ItemType}"/>
+                                    <GridViewColumn Header="Qty" Width="60" DisplayMemberBinding="{Binding Quantity}"/>
+                                    <GridViewColumn Header="Available" Width="80" DisplayMemberBinding="{Binding AvailableStock}"/>
+                                    <GridViewColumn Header="Actions" Width="80">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Button Content="❌" 
+                                                        Style="{StaticResource ModernButtonStyle}"
+                                                        Click="btnRemoveItem_Click"
+                                                        Tag="{Binding}"
+                                                        Padding="5"/>
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+                                </GridView>
+                            </ListView.View>
+                        </ListView>
+                    </Border>
+
+                    <!-- Transfer Summary -->
+                    <Border Background="#F5F5F5" BorderBrush="#E0E0E0" BorderThickness="1" 
+                            CornerRadius="5" Padding="10" Margin="0,0,0,15">
+                        <StackPanel>
+                            <TextBlock Text="Transfer Summary" FontWeight="Bold" Margin="0,0,0,5"/>
+                            <TextBlock x:Name="txtTransferSummary" Text="No items in transfer list" 
+                                       FontSize="12" Foreground="#666"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Action Buttons -->
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button x:Name="btnCreateTransfer" Content="📦 Create Transfer" 
+                                Style="{StaticResource SuccessButtonStyle}"
+                                Click="btnCreateTransfer_Click" 
+                                Margin="0,0,10,0"/>
+                        <Button x:Name="btnViewTransfers" Content="📋 View All Transfers" 
+                                Style="{StaticResource ModernButtonStyle}"
+                                Click="btnViewTransfers_Click"/>
+                    </StackPanel>
+
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+
+        <!-- Bottom Buttons -->
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="20">
-            <Button x:Name="btnTransfer" Content="🚚 Execute Transfer" 
-                    Style="{StaticResource SuccessButtonStyle}"
-                    Click="btnTransfer_Click" Margin="0,0,10,0"/>
             <Button x:Name="btnCancel" Content="❌ Cancel" 
                     Style="{StaticResource ModernButtonStyle}"
                     Click="btnCancel_Click"/>

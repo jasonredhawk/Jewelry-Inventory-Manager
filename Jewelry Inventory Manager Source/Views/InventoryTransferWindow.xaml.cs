@@ -17,11 +17,13 @@ namespace Moonglow_DB.Views
         private int _availableStock;
         private object _selectedItem;
         private readonly DatabaseContext _databaseContext;
+        private List<TransferListItem> _transferItems;
 
         public InventoryTransferWindow(DatabaseContext databaseContext)
         {
             InitializeComponent();
             _databaseContext = databaseContext;
+            _transferItems = new List<TransferListItem>();
             LoadData();
         }
 
@@ -29,9 +31,11 @@ namespace Moonglow_DB.Views
         {
             try
             {
+                _allLocations = _databaseContext.GetAllLocations().Where(l => l.IsActive).ToList();
                 LoadLocations();
                 LoadItemTypes();
                 InitializeFilteredComboBox();
+                UpdateTransferSummary();
             }
             catch (Exception ex)
             {
@@ -43,14 +47,13 @@ namespace Moonglow_DB.Views
         {
             try
             {
-                var locations = _databaseContext.GetAllLocations();
                 cmbFromLocation.Items.Clear();
                 cmbToLocation.Items.Clear();
                 
                 cmbFromLocation.Items.Add(new ComboBoxItem { Content = "Select Source Location", Tag = (int?)null });
                 cmbToLocation.Items.Add(new ComboBoxItem { Content = "Select Destination Location", Tag = (int?)null });
                 
-                foreach (var location in locations.Where(l => l.IsActive))
+                foreach (var location in _allLocations)
                 {
                     cmbFromLocation.Items.Add(new ComboBoxItem 
                     { 
@@ -78,6 +81,7 @@ namespace Moonglow_DB.Views
             cmbItemType.Items.Clear();
             cmbItemType.Items.Add(new ComboBoxItem { Content = "Product" });
             cmbItemType.Items.Add(new ComboBoxItem { Content = "Component" });
+            cmbItemType.SelectedIndex = 0; // Default to Product
         }
 
         private void InitializeFilteredComboBox()
@@ -103,12 +107,11 @@ namespace Moonglow_DB.Views
             }
         }
 
-
-
         private void cmbItemType_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             txtAvailableStock.Text = string.Empty;
             _availableStock = 0;
+            _selectedItem = null;
 
             if (cmbItemType.SelectedItem is ComboBoxItem selectedItem)
             {
@@ -132,8 +135,6 @@ namespace Moonglow_DB.Views
             }
         }
 
-
-
         private void cmbFromLocation_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             UpdateAvailableStock();
@@ -143,53 +144,36 @@ namespace Moonglow_DB.Views
         {
             try
             {
-                if (_selectedItem == null || cmbFromLocation.SelectedItem == null) return;
+                if (_selectedItem == null || cmbFromLocation.SelectedItem == null) 
+                {
+                    txtAvailableStock.Text = "0";
+                    _availableStock = 0;
+                    return;
+                }
 
-                var location = cmbFromLocation.SelectedItem as Location;
+                var fromLocationItem = cmbFromLocation.SelectedItem as ComboBoxItem;
+                if (fromLocationItem?.Tag == null) return;
+
+                var locationId = (int)fromLocationItem.Tag;
                 var itemId = 0;
-                var itemType = "";
 
                 if (_selectedItem is ComboBoxDisplayItem displayItem)
                 {
                     if (displayItem.Item is Product product)
                     {
                         itemId = product.Id;
-                        itemType = "Product";
+                        // Use GetProductStock which calculates stock from component availability
+                        _availableStock = _databaseContext.GetProductStock(itemId, locationId);
                     }
                     else if (displayItem.Item is Component component)
                     {
                         itemId = component.Id;
-                        itemType = "Component";
+                        // Use GetComponentStock which gets stock directly from LocationInventory
+                        _availableStock = _databaseContext.GetComponentStock(itemId, locationId);
                     }
                 }
 
-                var settings = SettingsManager.LoadSettings();
-                var connectionString = SettingsManager.BuildConnectionString(settings);
-                using (var context = new DatabaseContext(connectionString))
-                {
-                    var sql = @"
-                        SELECT COALESCE(SUM(Quantity), 0) as AvailableStock
-                        FROM LocationInventory 
-                        WHERE LocationId = @locationId 
-                        AND ItemId = @itemId 
-                        AND ItemType = @itemType";
-
-                    using (var command = context.CreateCommand(sql))
-                    {
-                        command.Parameters.AddWithValue("@locationId", location.Id);
-                        command.Parameters.AddWithValue("@itemId", itemId);
-                        command.Parameters.AddWithValue("@itemType", itemType);
-
-                        using (var reader = command.ExecuteReader())
-                        {
-                            if (reader.Read())
-                            {
-                                _availableStock = reader.GetInt32(0);
-                                txtAvailableStock.Text = _availableStock.ToString();
-                            }
-                        }
-                    }
-                }
+                txtAvailableStock.Text = _availableStock.ToString();
             }
             catch (Exception ex)
             {
@@ -204,51 +188,39 @@ namespace Moonglow_DB.Views
             e.Handled = !regex.IsMatch(e.Text);
         }
 
-        private void btnTransfer_Click(object sender, RoutedEventArgs e)
+        private void btnAddItem_Click(object sender, RoutedEventArgs e)
         {
-            if (!ValidateInput()) return;
+            if (!ValidateAddItem()) return;
 
             try
             {
-                ExecuteTransfer();
-                ErrorDialog.ShowSuccess("Transfer completed successfully!", "Success");
-                Close();
+                var transferItem = CreateTransferListItem();
+                if (transferItem != null)
+                {
+                    _transferItems.Add(transferItem);
+                    lstTransferItems.ItemsSource = null;
+                    lstTransferItems.ItemsSource = _transferItems;
+                    UpdateTransferSummary();
+                    ClearItemForm();
+                }
             }
             catch (Exception ex)
             {
-                ErrorDialog.ShowError($"Error executing transfer: {ex.Message}", "Error");
+                ErrorDialog.ShowError($"Error adding item to transfer: {ex.Message}", "Error");
             }
         }
 
-        private bool ValidateInput()
+        private bool ValidateAddItem()
         {
-            if (cmbItemType.SelectedItem == null)
+            if (cmbFromLocation.SelectedItem == null || cmbToLocation.SelectedItem == null)
             {
-                ErrorDialog.ShowWarning("Please select an item type.", "Validation Error");
+                ErrorDialog.ShowWarning("Please select both source and destination locations.", "Validation Error");
                 return false;
             }
 
             if (_selectedItem == null)
             {
-                ErrorDialog.ShowWarning("Please select an item.", "Validation Error");
-                return false;
-            }
-
-            if (cmbFromLocation.SelectedItem == null)
-            {
-                ErrorDialog.ShowWarning("Please select a source location.", "Validation Error");
-                return false;
-            }
-
-            if (cmbToLocation.SelectedItem == null)
-            {
-                ErrorDialog.ShowWarning("Please select a destination location.", "Validation Error");
-                return false;
-            }
-
-            if (cmbFromLocation.SelectedItem == cmbToLocation.SelectedItem)
-            {
-                ErrorDialog.ShowWarning("Source and destination locations must be different.", "Validation Error");
+                ErrorDialog.ShowWarning("Please select an item to transfer.", "Validation Error");
                 return false;
             }
 
@@ -264,57 +236,190 @@ namespace Moonglow_DB.Views
                 return false;
             }
 
+            var fromLocationId = GetSelectedFromLocationId();
+            var toLocationId = GetSelectedToLocationId();
+            if (fromLocationId == toLocationId)
+            {
+                ErrorDialog.ShowWarning("Source and destination locations must be different.", "Validation Error");
+                return false;
+            }
+
             return true;
         }
 
-        private void ExecuteTransfer()
+        private TransferListItem CreateTransferListItem()
         {
+            if (_selectedItem is ComboBoxDisplayItem displayItem)
+            {
+                var transferItem = new TransferListItem
+                {
+                    Quantity = int.Parse(txtTransferQuantity.Text),
+                    AvailableStock = _availableStock
+                };
+
+                if (displayItem.Item is Product product)
+                {
+                    transferItem.ItemId = product.Id;
+                    transferItem.ItemType = "Product";
+                    transferItem.DisplayName = product.Name;
+                    transferItem.SKU = product.SKU;
+
+                    // Get component breakdown for products
+                    var components = _databaseContext.GetProductComponents(product.Id);
+                    if (components.Any())
+                    {
+                        var componentList = components.Select(c => $"{c.Component.Name} (x{c.Quantity})");
+                        transferItem.ComponentBreakdown = string.Join(", ", componentList);
+                    }
+                }
+                else if (displayItem.Item is Component component)
+                {
+                    transferItem.ItemId = component.Id;
+                    transferItem.ItemType = "Component";
+                    transferItem.DisplayName = component.Name;
+                    transferItem.SKU = component.SKU;
+                }
+
+                return transferItem;
+            }
+
+            return null;
+        }
+
+        private void ClearItemForm()
+        {
+            filteredItemComboBox.ClearSelection();
+            txtTransferQuantity.Text = "1";
+            txtAvailableStock.Text = "0";
+            _selectedItem = null;
+            _availableStock = 0;
+        }
+
+        private void btnRemoveItem_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.Tag is TransferListItem item)
+            {
+                _transferItems.Remove(item);
+                lstTransferItems.ItemsSource = null;
+                lstTransferItems.ItemsSource = _transferItems;
+                UpdateTransferSummary();
+            }
+        }
+
+        private void UpdateTransferSummary()
+        {
+            if (_transferItems.Count == 0)
+            {
+                txtTransferSummary.Text = "No items in transfer list";
+                btnCreateTransfer.IsEnabled = false;
+                return;
+            }
+
+            var totalItems = _transferItems.Count;
+            var totalQuantity = _transferItems.Sum(item => item.Quantity);
+            var products = _transferItems.Count(item => item.IsProduct);
+            var components = _transferItems.Count(item => item.IsComponent);
+
+            txtTransferSummary.Text = $"Total Items: {totalItems} | Total Quantity: {totalQuantity} | Products: {products} | Components: {components}";
+            btnCreateTransfer.IsEnabled = true;
+        }
+
+        private void btnCreateTransfer_Click(object sender, RoutedEventArgs e)
+        {
+            if (!ValidateCreateTransfer()) return;
+
             try
             {
-                var settings = SettingsManager.LoadSettings();
-                var connectionString = SettingsManager.BuildConnectionString(settings);
-                using var dbContext = new DatabaseContext(connectionString);
-                
-                var fromLocationId = GetSelectedFromLocationId();
-                var toLocationId = GetSelectedToLocationId();
-                var itemId = GetSelectedItemId();
-                var itemType = GetSelectedItemType();
-                var quantity = int.Parse(txtTransferQuantity.Text);
-                
-                // Create outbound transaction
-                var outboundTransaction = new InventoryTransaction
+                var transferOrder = CreateBulkTransferOrder();
+                var transferId = _databaseContext.CreateBulkTransferOrder(transferOrder);
+
+                // Add all items to the transfer
+                foreach (var item in _transferItems)
                 {
-                    TransactionType = TransactionType.TransferOut,
-                    ItemType = itemType,
-                    ItemId = itemId,
-                    LocationId = fromLocationId,
-                    Quantity = -quantity,
-                    Notes = $"Transfer to {GetLocationName(toLocationId)}",
-                    TransactionDate = DateTime.Now
-                };
+                    var transferItem = new BulkTransferItem
+                    {
+                        TransferOrderId = transferId,
+                        ItemId = item.ItemId,
+                        ItemType = item.ItemType,
+                        ItemName = item.DisplayName,
+                        SKU = item.SKU,
+                        Quantity = item.Quantity,
+                        AvailableStock = item.AvailableStock,
+                        Notes = item.Notes
+                    };
+
+                    _databaseContext.AddBulkTransferItem(transferItem);
+                }
+
+                ErrorDialog.ShowSuccess($"Bulk transfer created successfully!\n\nTransfer Number: {transferOrder.TransferNumber}\nItems: {_transferItems.Count}\nStatus: Created\n\nYou can track and manage this transfer from the transfer management window.", "Transfer Created");
                 
-                // Create inbound transaction
-                var inboundTransaction = new InventoryTransaction
-                {
-                    TransactionType = TransactionType.TransferIn,
-                    ItemType = itemType,
-                    ItemId = itemId,
-                    LocationId = toLocationId,
-                    Quantity = quantity,
-                    Notes = $"Transfer from {GetLocationName(fromLocationId)}",
-                    TransactionDate = DateTime.Now
-                };
-                
-                dbContext.SaveTransaction(outboundTransaction);
-                dbContext.SaveTransaction(inboundTransaction);
-                
-                ErrorDialog.ShowSuccess("Transfer completed successfully!", "Success");
-                DialogResult = true;
-                Close();
+                // Clear the form
+                _transferItems.Clear();
+                lstTransferItems.ItemsSource = null;
+                UpdateTransferSummary();
+                txtNotes.Text = string.Empty;
             }
             catch (Exception ex)
             {
-                ErrorDialog.ShowError($"Error executing transfer: {ex.Message}", "Database Error");
+                ErrorDialog.ShowError($"Error creating bulk transfer: {ex.Message}", "Error");
+            }
+        }
+
+        private bool ValidateCreateTransfer()
+        {
+            if (_transferItems.Count == 0)
+            {
+                ErrorDialog.ShowWarning("Please add at least one item to the transfer list.", "Validation Error");
+                return false;
+            }
+
+            if (cmbFromLocation.SelectedItem == null || cmbToLocation.SelectedItem == null)
+            {
+                ErrorDialog.ShowWarning("Please select both source and destination locations.", "Validation Error");
+                return false;
+            }
+
+            var fromLocationId = GetSelectedFromLocationId();
+            var toLocationId = GetSelectedToLocationId();
+            if (fromLocationId == toLocationId)
+            {
+                ErrorDialog.ShowWarning("Source and destination locations must be different.", "Validation Error");
+                return false;
+            }
+
+            return true;
+        }
+
+        private BulkTransferOrder CreateBulkTransferOrder()
+        {
+            var fromLocationId = GetSelectedFromLocationId();
+            var toLocationId = GetSelectedToLocationId();
+            var fromLocation = _allLocations.FirstOrDefault(l => l.Id == fromLocationId);
+            var toLocation = _allLocations.FirstOrDefault(l => l.Id == toLocationId);
+
+            return new BulkTransferOrder
+            {
+                TransferNumber = _databaseContext.GenerateTransferNumber(),
+                FromLocationId = fromLocationId,
+                ToLocationId = toLocationId,
+                FromLocationName = fromLocation?.Name ?? "Unknown",
+                ToLocationName = toLocation?.Name ?? "Unknown",
+                Status = TransferStatus.Created,
+                Notes = txtNotes.Text,
+                CreatedDate = DateTime.Now
+            };
+        }
+
+        private void btnViewTransfers_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var managementWindow = new BulkTransferManagementWindow(_databaseContext);
+                managementWindow.ShowDialog();
+            }
+            catch (Exception ex)
+            {
+                ErrorDialog.ShowError($"Error opening transfer management: {ex.Message}", "Error");
             }
         }
 
@@ -326,36 +431,6 @@ namespace Moonglow_DB.Views
         private int GetSelectedToLocationId()
         {
             return cmbToLocation.SelectedItem is ComboBoxItem selectedToLocation ? (int)selectedToLocation.Tag : 0;
-        }
-
-        private int GetSelectedItemId()
-        {
-            if (_selectedItem is ComboBoxDisplayItem displayItem)
-            {
-                if (displayItem.Item is Product product)
-                {
-                    return product.Id;
-                }
-                else if (displayItem.Item is Component component)
-                {
-                    return component.Id;
-                }
-            }
-            return 0;
-        }
-
-        private string GetSelectedItemType()
-        {
-            return cmbItemType.SelectedItem is ComboBoxItem selectedItem ? selectedItem.Content.ToString() : string.Empty;
-        }
-
-        private string GetLocationName(int locationId)
-        {
-            var settings = SettingsManager.LoadSettings();
-            var connectionString = SettingsManager.BuildConnectionString(settings);
-            using var dbContext = new DatabaseContext(connectionString);
-            var location = dbContext.GetLocationById(locationId);
-            return location?.Name ?? "Unknown Location";
         }
 
         private void btnCancel_Click(object sender, RoutedEventArgs e)

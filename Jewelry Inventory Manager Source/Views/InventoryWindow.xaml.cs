@@ -13,12 +13,10 @@ namespace Moonglow_DB.Views
     {
         private readonly DatabaseContext _databaseContext;
         private List<InventoryItem> _allInventoryItems;
-        private List<LocationInventoryItem> _allLocationInventoryItems;
         private List<InventoryTransaction> _allTransactions;
         private List<InventoryAlert> _allAlerts;
         private List<Location> _allLocations;
         private InventoryItem _selectedInventoryItem;
-        private LocationInventoryItem _selectedLocationInventoryItem;
         private InventoryAlert _selectedAlert;
 
         public InventoryWindow(DatabaseContext databaseContext)
@@ -28,7 +26,6 @@ namespace Moonglow_DB.Views
             InitializeDatePickers();
             LoadLocations();
             LoadInventoryData();
-            LoadLocationInventoryData();
             LoadTransactions();
             LoadAlerts();
         }
@@ -49,13 +46,9 @@ namespace Moonglow_DB.Views
                 cmbLocationFilter.Items.Clear();
                 cmbLocationFilter.Items.Add(new ComboBoxItem { Content = "All Locations", IsSelected = true });
                 
-                cmbLocationFilter2.Items.Clear();
-                cmbLocationFilter2.Items.Add(new ComboBoxItem { Content = "All Locations", IsSelected = true });
-                
                 foreach (var location in _allLocations)
                 {
                     cmbLocationFilter.Items.Add(new ComboBoxItem { Content = location.Name });
-                    cmbLocationFilter2.Items.Add(new ComboBoxItem { Content = location.Name });
                 }
             }
             catch (Exception ex)
@@ -183,7 +176,6 @@ namespace Moonglow_DB.Views
                 if (addTransactionWindow.ShowDialog() == true)
                 {
                     LoadInventoryData();
-                    LoadLocationInventoryData();
                     LoadTransactions();
                 }
             }
@@ -201,7 +193,6 @@ namespace Moonglow_DB.Views
                 if (transferWindow.ShowDialog() == true)
                 {
                     LoadInventoryData();
-                    LoadLocationInventoryData();
                     LoadTransactions();
                 }
             }
@@ -272,129 +263,6 @@ namespace Moonglow_DB.Views
             _selectedInventoryItem = dgInventory.SelectedItem as InventoryItem;
         }
 
-        #endregion
-
-        #region Location Inventory Tab
-
-        private void LoadLocationInventoryData()
-        {
-            try
-            {
-                _allLocationInventoryItems = GetAllLocationInventoryItems();
-                dgLocationInventory.ItemsSource = _allLocationInventoryItems;
-            }
-            catch (Exception ex)
-            {
-                ErrorDialog.ShowError($"Error loading location inventory data:\n\n{ex.Message}\n\nStack Trace:\n{ex.StackTrace}", "Location Inventory Error");
-            }
-        }
-
-        private List<LocationInventoryItem> GetAllLocationInventoryItems()
-        {
-            var items = new List<LocationInventoryItem>();
-            
-            using var connection = _databaseContext.GetConnection();
-            
-            // Get Products with location breakdown
-            var productSql = @"
-                SELECT p.Id, p.SKU, p.Name, p.Description, p.Price, p.IsActive, p.LastModified,
-                       COALESCE(SUM(li.CurrentStock) OVER (PARTITION BY p.Id), 0) as TotalStock,
-                       l.Id as LocationId, l.Name as LocationName,
-                       COALESCE(li.CurrentStock, 0) as LocationStock,
-                       COALESCE(li.MinimumStock, 0) as MinimumStock
-                FROM Products p
-                LEFT JOIN LocationInventory li ON p.Id = li.ItemId AND li.ItemType = 'Product'
-                LEFT JOIN Locations l ON li.LocationId = l.Id
-                WHERE p.IsActive = 1
-                ORDER BY p.Name, l.Name";
-            
-            using var productCommand = new MySqlCommand(productSql, connection);
-            using var productReader = productCommand.ExecuteReader();
-            
-            while (productReader.Read())
-            {
-                items.Add(new LocationInventoryItem
-                {
-                    Id = productReader.GetInt32(0),
-                    SKU = productReader.GetString(1),
-                    Name = productReader.GetString(2),
-                    Description = productReader.IsDBNull(3) ? "" : productReader.GetString(3),
-                    ItemType = "Product",
-                    Price = productReader.GetDecimal(4),
-                    IsActive = productReader.GetBoolean(5),
-                    LastModified = productReader.GetDateTime(6),
-                    TotalStockAcrossLocations = productReader.GetInt32(7),
-                    LocationId = productReader.IsDBNull(8) ? 0 : productReader.GetInt32(8),
-                    LocationName = productReader.IsDBNull(9) ? "No Location" : productReader.GetString(9),
-                    CurrentStock = productReader.GetInt32(10),
-                    MinimumStock = productReader.GetInt32(11)
-                });
-            }
-            
-            productReader.Close();
-            
-            // Get Components with location breakdown
-            var componentSql = @"
-                SELECT c.Id, c.SKU, c.Name, c.Description, c.Cost, c.IsActive, c.LastModified,
-                       COALESCE(SUM(li.CurrentStock) OVER (PARTITION BY c.Id), 0) as TotalStock,
-                       l.Id as LocationId, l.Name as LocationName,
-                       COALESCE(li.CurrentStock, 0) as LocationStock,
-                       COALESCE(li.MinimumStock, 0) as MinimumStock
-                FROM Components c
-                LEFT JOIN LocationInventory li ON c.Id = li.ItemId AND li.ItemType = 'Component'
-                LEFT JOIN Locations l ON li.LocationId = l.Id
-                WHERE c.IsActive = 1
-                ORDER BY c.Name, l.Name";
-            
-            using var componentCommand = new MySqlCommand(componentSql, connection);
-            using var componentReader = componentCommand.ExecuteReader();
-            
-            while (componentReader.Read())
-            {
-                items.Add(new LocationInventoryItem
-                {
-                    Id = componentReader.GetInt32(0),
-                    SKU = componentReader.GetString(1),
-                    Name = componentReader.GetString(2),
-                    Description = componentReader.IsDBNull(3) ? "" : componentReader.GetString(3),
-                    ItemType = "Component",
-                    Cost = componentReader.GetDecimal(4),
-                    IsActive = componentReader.GetBoolean(5),
-                    LastModified = componentReader.GetDateTime(6),
-                    TotalStockAcrossLocations = componentReader.GetInt32(7),
-                    LocationId = componentReader.IsDBNull(8) ? 0 : componentReader.GetInt32(8),
-                    LocationName = componentReader.IsDBNull(9) ? "No Location" : componentReader.GetString(9),
-                    CurrentStock = componentReader.GetInt32(10),
-                    MinimumStock = componentReader.GetInt32(11)
-                });
-            }
-            
-            return items;
-        }
-
-        private void btnRefreshLocationInventory_Click(object sender, RoutedEventArgs e)
-        {
-            LoadLocationInventoryData();
-        }
-
-        private void btnTransferBetweenLocations_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                var transferWindow = new InventoryTransferWindow(_databaseContext);
-                if (transferWindow.ShowDialog() == true)
-                {
-                    LoadInventoryData();
-                    LoadLocationInventoryData();
-                    LoadTransactions();
-                }
-            }
-            catch (Exception ex)
-            {
-                ErrorDialog.ShowError($"Error opening transfer window: {ex.Message}", "Error");
-            }
-        }
-
         private void btnSetMinimumStock_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -414,7 +282,6 @@ namespace Moonglow_DB.Views
                 {
                     // Refresh the data to show updated minimum stock values
                     LoadInventoryData();
-                    LoadLocationInventoryData();
                 }
             }
             catch (Exception ex)
@@ -423,64 +290,9 @@ namespace Moonglow_DB.Views
             }
         }
 
-        private void cmbLocationFilter2_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            ApplyLocationInventoryFilter();
-        }
-
-        private void cmbFilter2_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            ApplyLocationInventoryFilter();
-        }
-
-        private void txtSearch2_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            ApplyLocationInventoryFilter();
-        }
-
-        private void ApplyLocationInventoryFilter()
-        {
-            if (_allLocationInventoryItems == null) return;
-
-            var searchText = txtSearch2.Text.ToLower();
-            var filterText = (cmbFilter2.SelectedItem as ComboBoxItem)?.Content.ToString();
-            var locationFilter = (cmbLocationFilter2.SelectedItem as ComboBoxItem)?.Content.ToString();
-
-            var filteredItems = _allLocationInventoryItems.Where(item =>
-            {
-                // Search filter
-                var matchesSearch = string.IsNullOrEmpty(searchText) ||
-                                  item.Name.ToLower().Contains(searchText) ||
-                                  item.SKU.ToLower().Contains(searchText) ||
-                                  item.Description.ToLower().Contains(searchText) ||
-                                  item.LocationName.ToLower().Contains(searchText);
-
-                // Type filter
-                var matchesFilter = filterText switch
-                {
-                    "Low Stock" => item.StockStatus == "Low Stock",
-                    "Out of Stock" => item.StockStatus == "Out of Stock",
-                    "Products Only" => item.ItemType == "Product",
-                    "Components Only" => item.ItemType == "Component",
-                    _ => true // "All Items"
-                };
-
-                // Location filter
-                var matchesLocation = locationFilter == "All Locations" || locationFilter == null || 
-                                    item.LocationName == locationFilter;
-
-                return matchesSearch && matchesFilter && matchesLocation;
-            }).ToList();
-
-            dgLocationInventory.ItemsSource = filteredItems;
-        }
-
-        private void dgLocationInventory_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            _selectedLocationInventoryItem = dgLocationInventory.SelectedItem as LocationInventoryItem;
-        }
-
         #endregion
+
+
 
         #region Transactions Tab
 

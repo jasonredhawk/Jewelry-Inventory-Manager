@@ -77,11 +77,18 @@ namespace Moonglow_DB.Views
                 }
                 
                 cmbLocation.SelectedIndex = 0;
+                cmbLocation.SelectionChanged += cmbLocation_SelectionChanged;
             }
             catch (Exception ex)
             {
                 ErrorDialog.ShowError($"Error loading locations: {ex.Message}", "Database Error");
             }
+        }
+
+        private void cmbLocation_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            // Update stock information when location changes
+            UpdateStockInformation();
         }
 
         private void InitializeFilteredComboBox()
@@ -91,6 +98,7 @@ namespace Moonglow_DB.Views
                 // Load all products and components
                 _allProducts = _databaseContext.GetAllProducts().Where(p => p.IsActive).ToList();
                 _allComponents = _databaseContext.GetAllComponents().Where(c => c.IsActive).ToList();
+                _allLocations = _databaseContext.GetAllLocations().Where(l => l.IsActive).ToList();
                 
                 // Create filter service
                 var filterService = new ItemFilterService(_databaseContext);
@@ -196,17 +204,7 @@ namespace Moonglow_DB.Views
                         MinimumStock = product.MinimumStock
                     };
                     
-                    // Show product stock information (calculated from components)
-                    var totalStock = 0;
-                    var locations = _databaseContext.GetAllLocations();
-                    foreach (var location in locations.Where(l => l.IsActive))
-                    {
-                        totalStock += _databaseContext.GetProductStock(product.Id, location.Id);
-                    }
-                    
-                    txtCurrentStockInfo.Text = $"Product: {product.Name}\n" +
-                                             $"Calculated Stock: {totalStock} (based on component availability)\n" +
-                                             $"Note: Product stock is calculated automatically from component stock levels.";
+                    UpdateStockInformation();
                 }
                 else if (displayItem.Item is Component component)
                 {
@@ -219,27 +217,87 @@ namespace Moonglow_DB.Views
                         MinimumStock = component.MinimumStock
                     };
                     
-                    // Show component stock information
-                    var totalStock = 0;
-                    var locations = _databaseContext.GetAllLocations();
-                    var locationDetails = new List<string>();
-                    
-                    foreach (var location in locations.Where(l => l.IsActive))
-                    {
-                        var stock = _databaseContext.GetComponentStock(component.Id, location.Id);
-                        totalStock += stock;
-                        locationDetails.Add($"{location.Name}: {stock}");
-                    }
-                    
-                    txtCurrentStockInfo.Text = $"Component: {component.Name}\n" +
-                                             $"Total Stock: {totalStock}\n" +
-                                             $"By Location:\n{string.Join("\n", locationDetails)}";
+                    UpdateStockInformation();
                 }
             }
             else
             {
                 _selectedItem = null;
                 txtCurrentStockInfo.Text = "Select an item to see current stock information";
+            }
+        }
+
+        private void UpdateStockInformation()
+        {
+            if (_selectedItem == null)
+            {
+                txtCurrentStockInfo.Text = "Select an item to see current stock information";
+                return;
+            }
+
+            var selectedLocationId = GetSelectedLocationId();
+            var selectedLocation = _allLocations.FirstOrDefault(l => l.Id == selectedLocationId);
+            var locationName = selectedLocation?.Name ?? "No Location Selected";
+
+            if (_selectedItem.Type == "Product")
+            {
+                var product = _databaseContext.GetAllProducts().FirstOrDefault(p => p.Id == _selectedItem.Id);
+                if (product != null)
+                {
+                    if (selectedLocationId > 0)
+                    {
+                        var locationStock = _databaseContext.GetProductStock(product.Id, selectedLocationId);
+                        txtCurrentStockInfo.Text = $"Product: {product.Name}\n" +
+                                                 $"Location: {locationName}\n" +
+                                                 $"Calculated Stock: {locationStock} (based on component availability)\n" +
+                                                 $"Note: Product stock is calculated automatically from component stock levels.";
+                    }
+                    else
+                    {
+                        // Show total across all locations if no specific location selected
+                        var totalStock = 0;
+                        foreach (var location in _allLocations)
+                        {
+                            totalStock += _databaseContext.GetProductStock(product.Id, location.Id);
+                        }
+                        txtCurrentStockInfo.Text = $"Product: {product.Name}\n" +
+                                                 $"Total Stock (All Locations): {totalStock} (based on component availability)\n" +
+                                                 $"Note: Product stock is calculated automatically from component stock levels.\n" +
+                                                 $"Select a location to see location-specific stock.";
+                    }
+                }
+            }
+            else if (_selectedItem.Type == "Component")
+            {
+                var component = _databaseContext.GetAllComponents().FirstOrDefault(c => c.Id == _selectedItem.Id);
+                if (component != null)
+                {
+                    if (selectedLocationId > 0)
+                    {
+                        var locationStock = _databaseContext.GetComponentStock(component.Id, selectedLocationId);
+                        txtCurrentStockInfo.Text = $"Component: {component.Name}\n" +
+                                                 $"Location: {locationName}\n" +
+                                                 $"Current Stock: {locationStock}";
+                    }
+                    else
+                    {
+                        // Show breakdown by location if no specific location selected
+                        var locationDetails = new List<string>();
+                        var totalStock = 0;
+                        
+                        foreach (var location in _allLocations)
+                        {
+                            var stock = _databaseContext.GetComponentStock(component.Id, location.Id);
+                            totalStock += stock;
+                            locationDetails.Add($"{location.Name}: {stock}");
+                        }
+                        
+                        txtCurrentStockInfo.Text = $"Component: {component.Name}\n" +
+                                                 $"Total Stock (All Locations): {totalStock}\n" +
+                                                 $"By Location:\n{string.Join("\n", locationDetails)}\n" +
+                                                 $"Select a location to see location-specific stock.";
+                    }
+                }
             }
         }
 
@@ -332,7 +390,13 @@ namespace Moonglow_DB.Views
                     _databaseContext.SaveTransaction(transaction);
                 }
                 
-                ErrorDialog.ShowSuccess("Transaction saved successfully!", "Success");
+                // For product returns, the success message is already shown in HandleProductReturn
+                // For other transactions, show the standard success message
+                if (!(isProduct && transactionType == "Return"))
+                {
+                    ErrorDialog.ShowSuccess("Transaction saved successfully!", "Success");
+                }
+                
                 DialogResult = true;
                 Close();
             }
@@ -381,6 +445,10 @@ namespace Moonglow_DB.Views
                     _databaseContext.SaveTransaction(componentTransaction);
                 }
                 
+                // Get location information
+                var location = _allLocations.FirstOrDefault(l => l.Id == locationId);
+                var locationName = location?.Name ?? "Unknown Location";
+                
                 // Build detailed component list for the success message
                 var componentDetails = new List<string>();
                 foreach (var component in productComponents)
@@ -394,6 +462,7 @@ namespace Moonglow_DB.Views
                 ErrorDialog.ShowSuccess(
                     $"Product return processed successfully!\n\n" +
                     $"Returned {quantity} x {product.Name}\n" +
+                    $"Location: {locationName}\n" +
                     $"Restocked {productComponents.Count()} component types:\n\n" +
                     $"{componentList}\n\n" +
                     $"Total components restocked: {productComponents.Sum(c => c.Quantity * quantity)}",

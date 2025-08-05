@@ -206,4 +206,6 @@ C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manage
 C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\GeneratedInternalTypeHelper.g.cs
 C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\Controls\FilteredComboBox.g.cs
 C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\Controls\FilteredComboBox.baml
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\BulkTransferManagementWindow.baml
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\BulkTransferManagementWindow.g.cs
 C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\refint\Moonglow DB.dll

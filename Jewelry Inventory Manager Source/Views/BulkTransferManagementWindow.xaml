@@ -1,0 +1,192 @@
+<Window x:Class="Moonglow_DB.Views.BulkTransferManagementWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Bulk Transfer Management" Height="700" Width="1200"
+        WindowStartupLocation="CenterScreen"
+        Background="#F5F5F5">
+    
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../Styles/SharedStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" Background="#FF9800" Padding="15">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="📦" FontSize="24" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <TextBlock Text="Bulk Transfer Management" 
+                           FontSize="20" 
+                           FontWeight="Bold" 
+                           Foreground="White" 
+                           VerticalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Filters Section -->
+        <Border Grid.Row="1" Background="White" Padding="15" Margin="15,0,15,0" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Status Filter -->
+                <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,10,0">
+                    <TextBlock Text="Status:" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                    <ComboBox x:Name="cmbStatusFilter" 
+                              SelectionChanged="cmbStatusFilter_SelectionChanged"
+                              Padding="8,5"/>
+                </StackPanel>
+
+                <!-- From Location Filter -->
+                <StackPanel Grid.Row="0" Grid.Column="1" Margin="0,0,10,0">
+                    <TextBlock Text="From Location:" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                    <ComboBox x:Name="cmbFromLocationFilter" 
+                              SelectionChanged="cmbFromLocationFilter_SelectionChanged"
+                              Padding="8,5"/>
+                </StackPanel>
+
+                <!-- To Location Filter -->
+                <StackPanel Grid.Row="0" Grid.Column="2" Margin="0,0,10,0">
+                    <TextBlock Text="To Location:" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                    <ComboBox x:Name="cmbToLocationFilter" 
+                              SelectionChanged="cmbToLocationFilter_SelectionChanged"
+                              Padding="8,5"/>
+                </StackPanel>
+
+                <!-- Date Range -->
+                <StackPanel Grid.Row="0" Grid.Column="3" Margin="0,0,10,0">
+                    <TextBlock Text="Date Range:" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                    <StackPanel Orientation="Horizontal">
+                        <DatePicker x:Name="dpFromDate" 
+                                    Width="100" 
+                                    Margin="0,0,5,0"
+                                    SelectedDateChanged="DateFilter_Changed"/>
+                        <TextBlock Text="to" VerticalAlignment="Center" Margin="5,0"/>
+                        <DatePicker x:Name="dpToDate" 
+                                    Width="100" 
+                                    Margin="5,0,0,0"
+                                    SelectedDateChanged="DateFilter_Changed"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Clear Filters Button -->
+                <Button Grid.Row="0" Grid.Column="4" 
+                        Content="🗑️ Clear Filters" 
+                        Style="{StaticResource WarningButtonStyle}"
+                        Click="btnClearFilters_Click"
+                        VerticalAlignment="Bottom"
+                        Padding="12,6"/>
+            </Grid>
+        </Border>
+
+        <!-- Main Content -->
+        <Grid Grid.Row="2" Margin="15">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- DataGrid -->
+            <Border Grid.Row="0" Background="White" CornerRadius="8" BorderBrush="#E0E0E0" BorderThickness="1">
+                <DataGrid x:Name="dgTransfers" 
+                          AutoGenerateColumns="False" 
+                          IsReadOnly="True"
+                          SelectionMode="Single"
+                          SelectionChanged="dgTransfers_SelectionChanged"
+                          GridLinesVisibility="Horizontal"
+                          HeadersVisibility="Column"
+                          CanUserResizeRows="False"
+                          CanUserSortColumns="True">
+                    
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Transfer #" Binding="{Binding TransferNumber}" Width="120"/>
+                        <DataGridTextColumn Header="From" Binding="{Binding FromLocationName}" Width="150"/>
+                        <DataGridTextColumn Header="To" Binding="{Binding ToLocationName}" Width="150"/>
+                        <DataGridTextColumn Header="Items" Binding="{Binding ItemCount}" Width="80"/>
+                        <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="100"/>
+                        <DataGridTextColumn Header="Created" Binding="{Binding CreatedDate, StringFormat=MM/dd/yyyy}" Width="100"/>
+                        <DataGridTextColumn Header="Notes" Binding="{Binding Notes}" Width="200"/>
+                    </DataGrid.Columns>
+                    
+                    <DataGrid.RowStyle>
+                        <Style TargetType="DataGridRow">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Status}" Value="Created">
+                                    <Setter Property="Background" Value="#E3F2FD"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding Status}" Value="InTransit">
+                                    <Setter Property="Background" Value="#FFF3E0"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding Status}" Value="Delivered">
+                                    <Setter Property="Background" Value="#E8F5E8"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding Status}" Value="Completed">
+                                    <Setter Property="Background" Value="#E8F5E8"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding Status}" Value="Cancelled">
+                                    <Setter Property="Background" Value="#FFEBEE"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </DataGrid.RowStyle>
+                </DataGrid>
+            </Border>
+
+            <!-- Action Buttons -->
+            <Border Grid.Row="1" Background="White" Padding="15" Margin="0,10,0,0" BorderBrush="#E0E0E0" BorderThickness="0,1,0,0">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button x:Name="btnViewDetails" 
+                            Content="👁️ View Details" 
+                            Style="{StaticResource ModernButtonStyle}"
+                            Click="btnViewDetails_Click"
+                            IsEnabled="False"
+                            Margin="0,0,10,0"/>
+                    
+                    <Button x:Name="btnUpdateStatus" 
+                            Content="🔄 Update Status" 
+                            Style="{StaticResource WarningButtonStyle}"
+                            Click="btnUpdateStatus_Click"
+                            IsEnabled="False"
+                            Margin="0,0,10,0"/>
+                    
+                    <Button x:Name="btnExecuteTransfer" 
+                            Content="✅ Execute Transfer" 
+                            Style="{StaticResource SuccessButtonStyle}"
+                            Click="btnExecuteTransfer_Click"
+                            IsEnabled="False"
+                            Margin="0,0,10,0"/>
+                    
+                    <Button x:Name="btnRefresh" 
+                            Content="🔄 Refresh" 
+                            Style="{StaticResource ModernButtonStyle}"
+                            Click="btnRefresh_Click"
+                            Margin="0,0,10,0"/>
+                    
+                    <Button x:Name="btnClose" 
+                            Content="❌ Close" 
+                            Style="{StaticResource DangerButtonStyle}"
+                            Click="btnClose_Click"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</Window> 

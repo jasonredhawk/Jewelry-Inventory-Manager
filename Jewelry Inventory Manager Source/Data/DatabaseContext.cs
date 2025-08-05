@@ -1,5 +1,6 @@
 using System;
 using System.Data;
+using System.Linq;
 using MySql.Data.MySqlClient;
 using System.Collections.Generic;
 using Moonglow_DB.Models;
@@ -80,6 +81,8 @@ namespace Moonglow_DB.Data
             CreateOrdersTable(connection);
             CreateOrderItemsTable(connection);
             CreatePurchaseOrdersTable(connection);
+            CreateBulkTransferOrdersTable(connection);
+            CreateBulkTransferItemsTable(connection);
             
             // Update existing database schema if needed
             UpdateDatabaseSchema(connection);
@@ -387,6 +390,50 @@ namespace Moonglow_DB.Data
                     Status ENUM('Pending', 'Approved', 'Received', 'Cancelled') DEFAULT 'Pending',
                     CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP,
                     UpdatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+                )";
+
+            using var command = new MySqlCommand(sql, connection);
+            command.ExecuteNonQuery();
+        }
+
+        private void CreateBulkTransferOrdersTable(MySqlConnection connection)
+        {
+            var sql = @"
+                CREATE TABLE IF NOT EXISTS BulkTransferOrders (
+                    Id INT AUTO_INCREMENT PRIMARY KEY,
+                    TransferNumber VARCHAR(50) NOT NULL UNIQUE,
+                    FromLocationId INT NOT NULL,
+                    ToLocationId INT NOT NULL,
+                    Status ENUM('Created', 'InTransit', 'Delivered', 'Completed', 'Cancelled') DEFAULT 'Created',
+                    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    ShippedDate DATETIME NULL,
+                    DeliveredDate DATETIME NULL,
+                    CompletedDate DATETIME NULL,
+                    Notes TEXT,
+                    TrackingNumber VARCHAR(100),
+                    CreatedBy VARCHAR(100),
+                    FOREIGN KEY (FromLocationId) REFERENCES Locations(Id),
+                    FOREIGN KEY (ToLocationId) REFERENCES Locations(Id)
+                )";
+
+            using var command = new MySqlCommand(sql, connection);
+            command.ExecuteNonQuery();
+        }
+
+        private void CreateBulkTransferItemsTable(MySqlConnection connection)
+        {
+            var sql = @"
+                CREATE TABLE IF NOT EXISTS BulkTransferItems (
+                    Id INT AUTO_INCREMENT PRIMARY KEY,
+                    TransferOrderId INT NOT NULL,
+                    ItemId INT NOT NULL,
+                    ItemType ENUM('Product', 'Component') NOT NULL,
+                    ItemName VARCHAR(100) NOT NULL,
+                    SKU VARCHAR(50),
+                    Quantity INT NOT NULL,
+                    AvailableStock INT NOT NULL,
+                    Notes TEXT,
+                    FOREIGN KEY (TransferOrderId) REFERENCES BulkTransferOrders(Id) ON DELETE CASCADE
                 )";
 
             using var command = new MySqlCommand(sql, connection);
@@ -1042,6 +1089,210 @@ namespace Moonglow_DB.Data
             }
             
             return productComponents;
+        }
+
+        // Bulk Transfer Methods
+        public int CreateBulkTransferOrder(BulkTransferOrder transferOrder)
+        {
+            var sql = @"
+                INSERT INTO BulkTransferOrders (TransferNumber, FromLocationId, ToLocationId, Status, Notes, TrackingNumber, CreatedBy)
+                VALUES (@TransferNumber, @FromLocationId, @ToLocationId, @Status, @Notes, @TrackingNumber, @CreatedBy);
+                SELECT LAST_INSERT_ID();";
+            
+            using var command = CreateCommand(sql);
+            command.Parameters.AddWithValue("@TransferNumber", transferOrder.TransferNumber);
+            command.Parameters.AddWithValue("@FromLocationId", transferOrder.FromLocationId);
+            command.Parameters.AddWithValue("@ToLocationId", transferOrder.ToLocationId);
+            command.Parameters.AddWithValue("@Status", transferOrder.Status.ToString());
+            command.Parameters.AddWithValue("@Notes", transferOrder.Notes ?? "");
+            command.Parameters.AddWithValue("@TrackingNumber", transferOrder.TrackingNumber ?? "");
+            command.Parameters.AddWithValue("@CreatedBy", transferOrder.CreatedBy ?? "");
+            
+            return Convert.ToInt32(command.ExecuteScalar());
+        }
+
+        public void AddBulkTransferItem(BulkTransferItem transferItem)
+        {
+            var sql = @"
+                INSERT INTO BulkTransferItems (TransferOrderId, ItemId, ItemType, ItemName, SKU, Quantity, AvailableStock, Notes)
+                VALUES (@TransferOrderId, @ItemId, @ItemType, @ItemName, @SKU, @Quantity, @AvailableStock, @Notes)";
+            
+            using var command = CreateCommand(sql);
+            command.Parameters.AddWithValue("@TransferOrderId", transferItem.TransferOrderId);
+            command.Parameters.AddWithValue("@ItemId", transferItem.ItemId);
+            command.Parameters.AddWithValue("@ItemType", transferItem.ItemType);
+            command.Parameters.AddWithValue("@ItemName", transferItem.ItemName);
+            command.Parameters.AddWithValue("@SKU", transferItem.SKU ?? "");
+            command.Parameters.AddWithValue("@Quantity", transferItem.Quantity);
+            command.Parameters.AddWithValue("@AvailableStock", transferItem.AvailableStock);
+            command.Parameters.AddWithValue("@Notes", transferItem.Notes ?? "");
+            
+            command.ExecuteNonQuery();
+        }
+
+        public List<BulkTransferOrder> GetAllBulkTransferOrders()
+        {
+            var transferOrders = new List<BulkTransferOrder>();
+            
+            var sql = @"
+                SELECT bto.Id, bto.TransferNumber, bto.FromLocationId, bto.ToLocationId, 
+                       bto.Status, bto.CreatedDate, bto.ShippedDate, bto.DeliveredDate, bto.CompletedDate,
+                       bto.Notes, bto.TrackingNumber, bto.CreatedBy,
+                       fl.Name as FromLocationName, tl.Name as ToLocationName,
+                       (SELECT COUNT(*) FROM BulkTransferItems WHERE TransferOrderId = bto.Id) as ItemCount
+                FROM BulkTransferOrders bto
+                LEFT JOIN Locations fl ON bto.FromLocationId = fl.Id
+                LEFT JOIN Locations tl ON bto.ToLocationId = tl.Id
+                ORDER BY bto.CreatedDate DESC";
+            
+            using var command = CreateCommand(sql);
+            using var reader = command.ExecuteReader();
+            
+            while (reader.Read())
+            {
+                var transferOrder = new BulkTransferOrder
+                {
+                    Id = reader.GetInt32(0),
+                    TransferNumber = reader.GetString(1),
+                    FromLocationId = reader.GetInt32(2),
+                    ToLocationId = reader.GetInt32(3),
+                    Status = (TransferStatus)Enum.Parse(typeof(TransferStatus), reader.GetString(4)),
+                    CreatedDate = reader.GetDateTime(5),
+                    FromLocationName = reader.GetString(12),
+                    ToLocationName = reader.GetString(13),
+                    Notes = reader.IsDBNull(9) ? "" : reader.GetString(9),
+                    TrackingNumber = reader.IsDBNull(10) ? "" : reader.GetString(10),
+                    CreatedBy = reader.IsDBNull(11) ? "" : reader.GetString(11),
+                    ItemCount = reader.GetInt32(14)
+                };
+                
+                if (!reader.IsDBNull(6)) transferOrder.ShippedDate = reader.GetDateTime(6);
+                if (!reader.IsDBNull(7)) transferOrder.DeliveredDate = reader.GetDateTime(7);
+                if (!reader.IsDBNull(8)) transferOrder.CompletedDate = reader.GetDateTime(8);
+                
+                transferOrders.Add(transferOrder);
+            }
+            
+            return transferOrders;
+        }
+
+        public List<BulkTransferItem> GetBulkTransferItems(int transferOrderId)
+        {
+            var transferItems = new List<BulkTransferItem>();
+            
+            var sql = @"
+                SELECT Id, TransferOrderId, ItemId, ItemType, ItemName, SKU, Quantity, AvailableStock, Notes
+                FROM BulkTransferItems
+                WHERE TransferOrderId = @TransferOrderId
+                ORDER BY ItemType, ItemName";
+            
+            using var command = CreateCommand(sql);
+            command.Parameters.AddWithValue("@TransferOrderId", transferOrderId);
+            
+            using var reader = command.ExecuteReader();
+            
+            while (reader.Read())
+            {
+                var transferItem = new BulkTransferItem
+                {
+                    Id = reader.GetInt32(0),
+                    TransferOrderId = reader.GetInt32(1),
+                    ItemId = reader.GetInt32(2),
+                    ItemType = reader.GetString(3),
+                    ItemName = reader.GetString(4),
+                    SKU = reader.IsDBNull(5) ? "" : reader.GetString(5),
+                    Quantity = reader.GetInt32(6),
+                    AvailableStock = reader.GetInt32(7),
+                    Notes = reader.IsDBNull(8) ? "" : reader.GetString(8)
+                };
+                
+                transferItems.Add(transferItem);
+            }
+            
+            return transferItems;
+        }
+
+        public void UpdateBulkTransferStatus(int transferOrderId, TransferStatus status, DateTime? statusDate = null)
+        {
+            var sql = @"
+                UPDATE BulkTransferOrders 
+                SET Status = @Status";
+            
+            if (status == TransferStatus.InTransit && statusDate.HasValue)
+                sql += ", ShippedDate = @StatusDate";
+            else if (status == TransferStatus.Delivered && statusDate.HasValue)
+                sql += ", DeliveredDate = @StatusDate";
+            else if (status == TransferStatus.Completed && statusDate.HasValue)
+                sql += ", CompletedDate = @StatusDate";
+            
+            sql += " WHERE Id = @TransferOrderId";
+            
+            using var command = CreateCommand(sql);
+            command.Parameters.AddWithValue("@Status", status.ToString());
+            command.Parameters.AddWithValue("@TransferOrderId", transferOrderId);
+            
+            if (statusDate.HasValue)
+                command.Parameters.AddWithValue("@StatusDate", statusDate.Value);
+            
+            command.ExecuteNonQuery();
+        }
+
+        public void ExecuteBulkTransfer(int transferOrderId)
+        {
+            // Get all items in the transfer
+            var transferItems = GetBulkTransferItems(transferOrderId);
+            var transferOrder = GetAllBulkTransferOrders().FirstOrDefault(t => t.Id == transferOrderId);
+            
+            if (transferOrder == null) return;
+            
+            using var connection = GetConnection();
+            using var transaction = connection.BeginTransaction();
+            
+            try
+            {
+                foreach (var item in transferItems)
+                {
+                    if (item.ItemType == "Product")
+                    {
+                        // For products, transfer their components
+                        var productComponents = GetProductComponents(item.ItemId);
+                        foreach (var component in productComponents)
+                        {
+                            var componentQuantity = component.Quantity * item.Quantity;
+                            
+                            // Remove from source location
+                            UpdateComponentStock(component.ComponentId, transferOrder.FromLocationId, -componentQuantity);
+                            
+                            // Add to destination location
+                            UpdateComponentStock(component.ComponentId, transferOrder.ToLocationId, componentQuantity);
+                        }
+                    }
+                    else
+                    {
+                        // For components, transfer directly
+                        UpdateComponentStock(item.ItemId, transferOrder.FromLocationId, -item.Quantity);
+                        UpdateComponentStock(item.ItemId, transferOrder.ToLocationId, item.Quantity);
+                    }
+                }
+                
+                // Update transfer status to completed
+                UpdateBulkTransferStatus(transferOrderId, TransferStatus.Completed, DateTime.Now);
+                
+                transaction.Commit();
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
+        }
+
+        public string GenerateTransferNumber()
+        {
+            var sql = "SELECT COUNT(*) FROM BulkTransferOrders WHERE TransferNumber LIKE 'TRF-%'";
+            using var command = CreateCommand(sql);
+            var count = Convert.ToInt32(command.ExecuteScalar());
+            return $"TRF-{(count + 1):D6}";
         }
     }
 } 
