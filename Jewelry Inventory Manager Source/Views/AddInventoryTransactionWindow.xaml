@@ -1,6 +1,7 @@
 <Window x:Class="Moonglow_DB.Views.AddInventoryTransactionWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:Controls="clr-namespace:Moonglow_DB.Views.Controls"
         Title="Add Inventory Transaction" Height="500" Width="600"
         WindowStartupLocation="CenterOwner"
         Background="#F5F5F5">
@@ -50,11 +51,9 @@
                           SelectionChanged="cmbItemType_SelectionChanged"
                           Margin="0,0,0,15"/>
 
-                <!-- Item Selection -->
-                <TextBlock Text="Item *" FontWeight="Bold" Margin="0,0,0,5"/>
-                <ComboBox x:Name="cmbItem" 
-                          Style="{StaticResource ModernComboBoxStyle}"
-                          Margin="0,0,0,15"/>
+                <!-- Item Selection with Filtering -->
+                <Controls:FilteredComboBox x:Name="filteredItemComboBox" 
+                                          SelectionChanged="FilteredItemComboBox_SelectionChanged"/>
 
                 <!-- Location -->
                 <TextBlock Text="Location *" FontWeight="Bold" Margin="0,0,0,5"/>

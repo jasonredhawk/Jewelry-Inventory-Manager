@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using Moonglow_DB.Models;
 using Moonglow_DB.Data;
+using Moonglow_DB.Views.Controls;
 
 namespace Moonglow_DB.Views
 {
@@ -30,6 +31,7 @@ namespace Moonglow_DB.Views
                 LoadTransactionTypes();
                 LoadItemTypes();
                 LoadLocations();
+                InitializeFilteredComboBox();
             }
             catch (Exception ex)
             {
@@ -78,55 +80,30 @@ namespace Moonglow_DB.Views
             }
         }
 
-        private void LoadProducts()
+        private void InitializeFilteredComboBox()
         {
             try
             {
-                var products = _databaseContext.GetAllProducts();
-                cmbItem.Items.Clear();
-                cmbItem.Items.Add(new ComboBoxItem { Content = "Select Product", Tag = (int?)null });
+                // Load all products and components
+                _allProducts = _databaseContext.GetAllProducts().Where(p => p.IsActive).ToList();
+                _allComponents = _databaseContext.GetAllComponents().Where(c => c.IsActive).ToList();
                 
-                foreach (var product in products.Where(p => p.IsActive))
-                {
-                    cmbItem.Items.Add(new ComboBoxItem 
-                    { 
-                        Content = $"{product.Name} (Stock: {product.CurrentStock})", 
-                        Tag = product.Id
-                    });
-                }
+                // Create filter service
+                var filterService = new ItemFilterService(_databaseContext);
                 
-                cmbItem.SelectedIndex = 0;
+                // Initialize the filtered combo box
+                filteredItemComboBox.Initialize(filterService, _allProducts, _allComponents);
+                
+                // Set default to products
+                filteredItemComboBox.SetItemType(true);
             }
             catch (Exception ex)
             {
-                ErrorDialog.ShowError($"Error loading products: {ex.Message}", "Database Error");
+                ErrorDialog.ShowError($"Error initializing filtered combo box: {ex.Message}", "Error");
             }
         }
 
-        private void LoadComponents()
-        {
-            try
-            {
-                var components = _databaseContext.GetAllComponents();
-                cmbItem.Items.Clear();
-                cmbItem.Items.Add(new ComboBoxItem { Content = "Select Component", Tag = (int?)null });
-                
-                foreach (var component in components.Where(c => c.IsActive))
-                {
-                    cmbItem.Items.Add(new ComboBoxItem 
-                    { 
-                        Content = $"{component.Name} (Stock: {component.CurrentStock})", 
-                        Tag = component.Id 
-                    });
-                }
-                
-                cmbItem.SelectedIndex = 0;
-            }
-            catch (Exception ex)
-            {
-                ErrorDialog.ShowError($"Error loading components: {ex.Message}", "Database Error");
-            }
-        }
+        
 
         private void cmbTransactionType_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -156,27 +133,26 @@ namespace Moonglow_DB.Views
 
         private void cmbItemType_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            cmbItem.ItemsSource = null;
             _selectedItem = null;
 
             if (cmbItemType.SelectedItem is ComboBoxItem selectedItem)
             {
                 if (selectedItem.Content.ToString() == "Product")
                 {
-                    LoadProducts();
+                    filteredItemComboBox.SetItemType(true);
                 }
                 else if (selectedItem.Content.ToString() == "Component")
                 {
-                    LoadComponents();
+                    filteredItemComboBox.SetItemType(false);
                 }
             }
         }
 
-        private void cmbItem_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void FilteredItemComboBox_SelectionChanged(object sender, object selectedItem)
         {
-            if (cmbItem.SelectedItem != null)
+            if (selectedItem is ComboBoxDisplayItem displayItem)
             {
-                if (cmbItem.SelectedItem is Product product)
+                if (displayItem.Item is Product product)
                 {
                     _selectedItem = new InventoryItem
                     {
@@ -187,7 +163,7 @@ namespace Moonglow_DB.Views
                         MinimumStock = product.MinimumStock
                     };
                 }
-                else if (cmbItem.SelectedItem is Component component)
+                else if (displayItem.Item is Component component)
                 {
                     _selectedItem = new InventoryItem
                     {
@@ -200,6 +176,8 @@ namespace Moonglow_DB.Views
                 }
             }
         }
+
+
 
         private void btnSave_Click(object sender, RoutedEventArgs e)
         {
@@ -223,7 +201,7 @@ namespace Moonglow_DB.Views
                 return false;
             }
 
-            if (cmbItem.SelectedItem == null)
+            if (_selectedItem == null)
             {
                 ErrorDialog.ShowWarning("Please select an item.", "Validation Error");
                 return false;
@@ -307,11 +285,7 @@ namespace Moonglow_DB.Views
 
         private int GetSelectedItemId()
         {
-            if (cmbItem.SelectedItem is ComboBoxItem selectedItem)
-            {
-                return selectedItem.Tag as int? ?? 0;
-            }
-            return 0;
+            return _selectedItem?.Id ?? 0;
         }
 
         private int GetSelectedLocationId()

@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using Moonglow_DB.Models;
 using Moonglow_DB.Data;
+using Moonglow_DB.Views.Controls;
 
 namespace Moonglow_DB.Views
 {
@@ -14,6 +15,7 @@ namespace Moonglow_DB.Views
         private List<Component> _allComponents;
         private List<Location> _allLocations;
         private int _availableStock;
+        private object _selectedItem;
         private readonly DatabaseContext _databaseContext;
 
         public InventoryTransferWindow(DatabaseContext databaseContext)
@@ -29,6 +31,7 @@ namespace Moonglow_DB.Views
             {
                 LoadLocations();
                 LoadItemTypes();
+                InitializeFilteredComboBox();
             }
             catch (Exception ex)
             {
@@ -77,60 +80,33 @@ namespace Moonglow_DB.Views
             cmbItemType.Items.Add(new ComboBoxItem { Content = "Component" });
         }
 
-        private void LoadProducts()
+        private void InitializeFilteredComboBox()
         {
             try
             {
-                var products = _databaseContext.GetAllProducts();
-                cmbItem.Items.Clear();
-                cmbItem.Items.Add(new ComboBoxItem { Content = "Select Product", Tag = (int?)null });
+                // Load all products and components
+                _allProducts = _databaseContext.GetAllProducts().Where(p => p.IsActive).ToList();
+                _allComponents = _databaseContext.GetAllComponents().Where(c => c.IsActive).ToList();
                 
-                foreach (var product in products.Where(p => p.IsActive))
-                {
-                    cmbItem.Items.Add(new ComboBoxItem 
-                    { 
-                        Content = $"{product.Name} (Stock: {product.CurrentStock})", 
-                        Tag = product.Id 
-                    });
-                }
+                // Create filter service
+                var filterService = new ItemFilterService(_databaseContext);
                 
-                cmbItem.SelectedIndex = 0;
+                // Initialize the filtered combo box
+                filteredItemComboBox.Initialize(filterService, _allProducts, _allComponents);
+                
+                // Set default to products
+                filteredItemComboBox.SetItemType(true);
             }
             catch (Exception ex)
             {
-                ErrorDialog.ShowError($"Error loading products: {ex.Message}", "Database Error");
+                ErrorDialog.ShowError($"Error initializing filtered combo box: {ex.Message}", "Error");
             }
         }
 
-        private void LoadComponents()
-        {
-            try
-            {
-                var components = _databaseContext.GetAllComponents();
-                cmbItem.Items.Clear();
-                cmbItem.Items.Add(new ComboBoxItem { Content = "Select Component", Tag = (int?)null });
-                
-                foreach (var component in components.Where(c => c.IsActive))
-                {
-                    cmbItem.Items.Add(new ComboBoxItem 
-                    { 
-                        Content = $"{component.Name} (Stock: {component.CurrentStock})", 
-                        Tag = component.Id 
-                    });
-                }
-                
-                cmbItem.SelectedIndex = 0;
-            }
-            catch (Exception ex)
-            {
-                ErrorDialog.ShowError($"Error loading components: {ex.Message}", "Database Error");
-            }
-        }
+
 
         private void cmbItemType_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            cmbItem.ItemsSource = null;
-            cmbItem.SelectedIndex = -1;
             txtAvailableStock.Text = string.Empty;
             _availableStock = 0;
 
@@ -138,22 +114,25 @@ namespace Moonglow_DB.Views
             {
                 if (selectedItem.Content.ToString() == "Product")
                 {
-                    LoadProducts();
+                    filteredItemComboBox.SetItemType(true);
                 }
                 else if (selectedItem.Content.ToString() == "Component")
                 {
-                    LoadComponents();
+                    filteredItemComboBox.SetItemType(false);
                 }
             }
         }
 
-        private void cmbItem_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void FilteredItemComboBox_SelectionChanged(object sender, object selectedItem)
         {
+            _selectedItem = selectedItem;
             if (cmbFromLocation.SelectedItem != null)
             {
                 UpdateAvailableStock();
             }
         }
+
+
 
         private void cmbFromLocation_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -164,21 +143,24 @@ namespace Moonglow_DB.Views
         {
             try
             {
-                if (cmbItem.SelectedItem == null || cmbFromLocation.SelectedItem == null) return;
+                if (_selectedItem == null || cmbFromLocation.SelectedItem == null) return;
 
                 var location = cmbFromLocation.SelectedItem as Location;
                 var itemId = 0;
                 var itemType = "";
 
-                if (cmbItem.SelectedItem is Product product)
+                if (_selectedItem is ComboBoxDisplayItem displayItem)
                 {
-                    itemId = product.Id;
-                    itemType = "Product";
-                }
-                else if (cmbItem.SelectedItem is Component component)
-                {
-                    itemId = component.Id;
-                    itemType = "Component";
+                    if (displayItem.Item is Product product)
+                    {
+                        itemId = product.Id;
+                        itemType = "Product";
+                    }
+                    else if (displayItem.Item is Component component)
+                    {
+                        itemId = component.Id;
+                        itemType = "Component";
+                    }
                 }
 
                 var settings = SettingsManager.LoadSettings();
@@ -246,7 +228,7 @@ namespace Moonglow_DB.Views
                 return false;
             }
 
-            if (cmbItem.SelectedItem == null)
+            if (_selectedItem == null)
             {
                 ErrorDialog.ShowWarning("Please select an item.", "Validation Error");
                 return false;
@@ -348,7 +330,18 @@ namespace Moonglow_DB.Views
 
         private int GetSelectedItemId()
         {
-            return cmbItem.SelectedItem is ComboBoxItem selectedItem ? (int)selectedItem.Tag : 0;
+            if (_selectedItem is ComboBoxDisplayItem displayItem)
+            {
+                if (displayItem.Item is Product product)
+                {
+                    return product.Id;
+                }
+                else if (displayItem.Item is Component component)
+                {
+                    return component.Id;
+                }
+            }
+            return 0;
         }
 
         private string GetSelectedItemType()
