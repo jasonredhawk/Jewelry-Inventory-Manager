@@ -12,11 +12,11 @@ namespace Moonglow_DB.Views
     public partial class InventoryWindow : Window
     {
         private readonly DatabaseContext _databaseContext;
-        private List<InventoryItem> _allInventoryItems;
+        private List<LocationInventoryItem> _allInventoryItems;
         private List<InventoryTransaction> _allTransactions;
         private List<InventoryAlert> _allAlerts;
         private List<Location> _allLocations;
-        private InventoryItem _selectedInventoryItem;
+        private LocationInventoryItem _selectedInventoryItem;
         private InventoryAlert _selectedAlert;
 
         public InventoryWindow(DatabaseContext databaseContext)
@@ -48,7 +48,7 @@ namespace Moonglow_DB.Views
                 
                 foreach (var location in _allLocations)
                 {
-                    cmbLocationFilter.Items.Add(new ComboBoxItem { Content = location.Name });
+                    cmbLocationFilter.Items.Add(new ComboBoxItem { Content = location.Name, Tag = location.Id });
                 }
             }
             catch (Exception ex)
@@ -78,18 +78,19 @@ namespace Moonglow_DB.Views
             }
         }
 
-        private List<InventoryItem> GetAllInventoryItems()
+        private List<LocationInventoryItem> GetAllInventoryItems()
         {
-            var items = new List<InventoryItem>();
+            var items = new List<LocationInventoryItem>();
             var locations = _databaseContext.GetAllLocations();
             
-            // Get all products and calculate their stock across all locations
+            // Get all products and calculate their stock for each location
             var products = _databaseContext.GetAllProducts();
             foreach (var product in products.Where(p => p.IsActive))
             {
                 var totalStock = 0;
                 var totalMinStock = 0;
                 
+                // Calculate total stock across all locations
                 foreach (var location in locations.Where(l => l.IsActive))
                 {
                     var productStock = _databaseContext.GetProductStock(product.Id, location.Id);
@@ -99,28 +100,39 @@ namespace Moonglow_DB.Views
                     totalMinStock += minStock;
                 }
                 
-                items.Add(new InventoryItem
+                // Create an item for each location
+                foreach (var location in locations.Where(l => l.IsActive))
                 {
-                    Id = product.Id,
-                    SKU = product.SKU,
-                    Name = product.Name,
-                    Description = product.Description ?? "",
-                    ItemType = "Product",
-                    Price = product.Price,
-                    CurrentStock = totalStock,
-                    MinimumStock = totalMinStock,
-                    IsActive = product.IsActive,
-                    LastModified = product.LastModified
-                });
+                    var productStock = _databaseContext.GetProductStock(product.Id, location.Id);
+                    var minStock = _databaseContext.GetMinimumStock("Product", product.Id, location.Id);
+                    
+                    items.Add(new LocationInventoryItem
+                    {
+                        Id = product.Id,
+                        SKU = product.SKU,
+                        Name = product.Name,
+                        Description = product.Description ?? "",
+                        ItemType = "Product",
+                        LocationId = location.Id,
+                        LocationName = location.Name,
+                        Price = product.Price,
+                        CurrentStock = productStock,
+                        TotalStockAcrossLocations = totalStock,
+                        MinimumStock = minStock,
+                        IsActive = product.IsActive,
+                        LastModified = product.LastModified
+                    });
+                }
             }
             
-            // Get all components and calculate their stock across all locations
+            // Get all components and calculate their stock for each location
             var components = _databaseContext.GetAllComponents();
             foreach (var component in components.Where(c => c.IsActive))
             {
                 var totalStock = 0;
                 var totalMinStock = 0;
                 
+                // Calculate total stock across all locations
                 foreach (var location in locations.Where(l => l.IsActive))
                 {
                     var componentStock = _databaseContext.GetComponentStock(component.Id, location.Id);
@@ -130,19 +142,29 @@ namespace Moonglow_DB.Views
                     totalMinStock += minStock;
                 }
                 
-                items.Add(new InventoryItem
+                // Create an item for each location
+                foreach (var location in locations.Where(l => l.IsActive))
                 {
-                    Id = component.Id,
-                    SKU = component.SKU,
-                    Name = component.Name,
-                    Description = component.Description ?? "",
-                    ItemType = "Component",
-                    Cost = component.Cost,
-                    CurrentStock = totalStock,
-                    MinimumStock = totalMinStock,
-                    IsActive = component.IsActive,
-                    LastModified = component.LastModified
-                });
+                    var componentStock = _databaseContext.GetComponentStock(component.Id, location.Id);
+                    var minStock = _databaseContext.GetMinimumStock("Component", component.Id, location.Id);
+                    
+                    items.Add(new LocationInventoryItem
+                    {
+                        Id = component.Id,
+                        SKU = component.SKU,
+                        Name = component.Name,
+                        Description = component.Description ?? "",
+                        ItemType = "Component",
+                        LocationId = location.Id,
+                        LocationName = location.Name,
+                        Cost = component.Cost,
+                        CurrentStock = componentStock,
+                        TotalStockAcrossLocations = totalStock,
+                        MinimumStock = minStock,
+                        IsActive = component.IsActive,
+                        LastModified = component.LastModified
+                    });
+                }
             }
             
             return items;
@@ -152,10 +174,13 @@ namespace Moonglow_DB.Views
         {
             if (_allInventoryItems == null) return;
 
-            var totalProducts = _allInventoryItems.Count(x => x.ItemType == "Product");
-            var totalComponents = _allInventoryItems.Count(x => x.ItemType == "Component");
-            var lowStockItems = _allInventoryItems.Count(x => x.StockStatus == "Low Stock");
-            var outOfStockItems = _allInventoryItems.Count(x => x.StockStatus == "Out of Stock");
+            // Get unique items (by ID) for summary calculations
+            var uniqueItems = _allInventoryItems.GroupBy(x => x.Id).Select(g => g.First()).ToList();
+            
+            var totalProducts = uniqueItems.Count(x => x.ItemType == "Product");
+            var totalComponents = uniqueItems.Count(x => x.ItemType == "Component");
+            var lowStockItems = uniqueItems.Count(x => x.StockStatus == "Low Stock");
+            var outOfStockItems = uniqueItems.Count(x => x.StockStatus == "Out of Stock");
 
             txtTotalProducts.Text = totalProducts.ToString();
             txtTotalComponents.Text = totalComponents.ToString();
@@ -172,16 +197,26 @@ namespace Moonglow_DB.Views
         {
             try
             {
-                var addTransactionWindow = new AddInventoryTransactionWindow(_databaseContext);
-                if (addTransactionWindow.ShowDialog() == true)
+                // Create a new database context for the AddInventoryTransactionWindow
+                var settings = SettingsManager.LoadSettings();
+                var connectionString = SettingsManager.BuildConnectionString(settings);
+                var dbContext = new DatabaseContext(connectionString);
+                
+                var addTransactionWindow = new AddInventoryTransactionWindow(dbContext);
+                var result = addTransactionWindow.ShowDialog();
+                
+                // Dispose the database context after the window is closed
+                dbContext.Dispose();
+                
+                if (result == true)
                 {
+                    // Refresh the data to show updated stock values
                     LoadInventoryData();
-                    LoadTransactions();
                 }
             }
             catch (Exception ex)
             {
-                ErrorDialog.ShowError($"Error opening add transaction window: {ex.Message}", "Error");
+                ErrorDialog.ShowError($"Error in InventoryWindow.btnAddTransaction_Click(): {ex.Message}\n\nStack Trace: {ex.StackTrace}", "Error");
             }
         }
 
@@ -189,23 +224,33 @@ namespace Moonglow_DB.Views
         {
             try
             {
-                var transferWindow = new InventoryTransferWindow(_databaseContext);
-                if (transferWindow.ShowDialog() == true)
+                // Create a new database context for the InventoryTransferWindow
+                var settings = SettingsManager.LoadSettings();
+                var connectionString = SettingsManager.BuildConnectionString(settings);
+                var dbContext = new DatabaseContext(connectionString);
+                
+                var transferWindow = new InventoryTransferWindow(dbContext);
+                var result = transferWindow.ShowDialog();
+                
+                // Dispose the database context after the window is closed
+                dbContext.Dispose();
+                
+                if (result == true)
                 {
+                    // Refresh the data to show updated stock values
                     LoadInventoryData();
-                    LoadTransactions();
                 }
             }
             catch (Exception ex)
             {
-                ErrorDialog.ShowError($"Error opening transfer window: {ex.Message}", "Error");
+                ErrorDialog.ShowError($"Error in InventoryWindow.btnTransfer_Click(): {ex.Message}\n\nStack Trace: {ex.StackTrace}", "Error");
             }
         }
 
         private void btnGeneratePO_Click(object sender, RoutedEventArgs e)
         {
-            // TODO: Implement purchase order generation
-            ErrorDialog.ShowInformation("Purchase order generation feature will be implemented soon.", "Feature Coming Soon");
+            // TODO: Implement Purchase Order generation
+            ErrorDialog.ShowInformation("Purchase Order generation feature is not yet implemented.", "Feature Not Available");
         }
 
         private void cmbFilter_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -230,6 +275,19 @@ namespace Moonglow_DB.Views
             var searchText = txtSearch.Text.ToLower();
             var filterText = (cmbFilter.SelectedItem as ComboBoxItem)?.Content.ToString();
             var locationFilter = (cmbLocationFilter.SelectedItem as ComboBoxItem)?.Content.ToString();
+            var selectedLocationId = (cmbLocationFilter.SelectedItem as ComboBoxItem)?.Tag as int?;
+
+            // Show/hide location-specific columns based on filter
+            if (locationFilter == "All Locations" || locationFilter == null)
+            {
+                colLocation.Visibility = Visibility.Collapsed;
+                dgInventory.Columns[4].Visibility = Visibility.Collapsed; // Location Stock column
+            }
+            else
+            {
+                colLocation.Visibility = Visibility.Visible;
+                dgInventory.Columns[4].Visibility = Visibility.Visible; // Location Stock column
+            }
 
             var filteredItems = _allInventoryItems.Where(item =>
             {
@@ -249,8 +307,9 @@ namespace Moonglow_DB.Views
                     _ => true // "All Items"
                 };
 
-                // Location filter (for now, show all items since we're in the overview tab)
-                var matchesLocation = locationFilter == "All Locations" || locationFilter == null;
+                // Location filter
+                var matchesLocation = locationFilter == "All Locations" || locationFilter == null || 
+                                    (selectedLocationId.HasValue && item.LocationId == selectedLocationId.Value);
 
                 return matchesSearch && matchesFilter && matchesLocation;
             }).ToList();
@@ -260,7 +319,7 @@ namespace Moonglow_DB.Views
 
         private void dgInventory_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            _selectedInventoryItem = dgInventory.SelectedItem as InventoryItem;
+            _selectedInventoryItem = dgInventory.SelectedItem as LocationInventoryItem;
         }
 
         private void btnSetMinimumStock_Click(object sender, RoutedEventArgs e)
@@ -408,10 +467,10 @@ namespace Moonglow_DB.Views
                             AlertDate = DateTime.Now,
                             AlertType = "Out of Stock",
                             ItemName = item.Name,
-                            LocationName = "All Locations",
+                            LocationName = item.LocationName,
                             CurrentStock = item.CurrentStock,
                             MinimumStock = item.MinimumStock,
-                            Message = $"{item.ItemType} '{item.Name}' is out of stock"
+                            Message = $"{item.ItemType} '{item.Name}' is out of stock at {item.LocationName}"
                         });
                     }
                     else if (item.CurrentStock <= item.MinimumStock)
@@ -421,10 +480,10 @@ namespace Moonglow_DB.Views
                             AlertDate = DateTime.Now,
                             AlertType = "Low Stock",
                             ItemName = item.Name,
-                            LocationName = "All Locations",
+                            LocationName = item.LocationName,
                             CurrentStock = item.CurrentStock,
                             MinimumStock = item.MinimumStock,
-                            Message = $"{item.ItemType} '{item.Name}' is running low on stock"
+                            Message = $"{item.ItemType} '{item.Name}' is running low on stock at {item.LocationName}"
                         });
                     }
                 }

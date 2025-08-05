@@ -1214,6 +1214,19 @@ namespace Moonglow_DB.Data
 
         public void UpdateBulkTransferStatus(int transferOrderId, TransferStatus status, DateTime? statusDate = null)
         {
+            // Get the current transfer order to check if we're reverting from Completed
+            var transferOrder = GetAllBulkTransferOrders().FirstOrDefault(t => t.Id == transferOrderId);
+            if (transferOrder == null) return;
+            
+            var wasCompleted = transferOrder.Status == TransferStatus.Completed;
+            var isRevertingFromCompleted = wasCompleted && status != TransferStatus.Completed;
+            
+            // If reverting from Completed, reverse the stock adjustments
+            if (isRevertingFromCompleted)
+            {
+                ReverseBulkTransferStock(transferOrderId);
+            }
+            
             var sql = @"
                 UPDATE BulkTransferOrders 
                 SET Status = @Status";
@@ -1235,6 +1248,51 @@ namespace Moonglow_DB.Data
                 command.Parameters.AddWithValue("@StatusDate", statusDate.Value);
             
             command.ExecuteNonQuery();
+        }
+        
+        private void ReverseBulkTransferStock(int transferOrderId)
+        {
+            // Get all items in the transfer
+            var transferItems = GetBulkTransferItems(transferOrderId);
+            var transferOrder = GetAllBulkTransferOrders().FirstOrDefault(t => t.Id == transferOrderId);
+            
+            if (transferOrder == null) return;
+            
+            using var connection = GetConnection();
+            using var transaction = connection.BeginTransaction();
+            
+            try
+            {
+                foreach (var item in transferItems)
+                {
+                    if (item.ItemType == "Product")
+                    {
+                        // For products, reverse their component transfers
+                        var productComponents = GetProductComponents(item.ItemId);
+                        foreach (var component in productComponents)
+                        {
+                            var componentQuantity = component.Quantity * item.Quantity;
+                            
+                            // Reverse the transfer: add back to source, remove from destination
+                            UpdateComponentStock(component.ComponentId, transferOrder.FromLocationId, componentQuantity);
+                            UpdateComponentStock(component.ComponentId, transferOrder.ToLocationId, -componentQuantity);
+                        }
+                    }
+                    else
+                    {
+                        // For components, reverse the transfer directly
+                        UpdateComponentStock(item.ItemId, transferOrder.FromLocationId, item.Quantity);
+                        UpdateComponentStock(item.ItemId, transferOrder.ToLocationId, -item.Quantity);
+                    }
+                }
+                
+                transaction.Commit();
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
         }
 
         public void ExecuteBulkTransfer(int transferOrderId)

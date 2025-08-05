@@ -173,7 +173,9 @@
                             <DataGridTextColumn Header="Type" Binding="{Binding ItemType}" Width="80"/>
                             <DataGridTextColumn Header="SKU" Binding="{Binding SKU}" Width="120"/>
                             <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="200"/>
-                            <DataGridTextColumn Header="Total Stock" Binding="{Binding CurrentStock}" Width="100"/>
+                            <DataGridTextColumn x:Name="colLocation" Header="Location" Binding="{Binding LocationName}" Width="120" Visibility="Collapsed"/>
+                            <DataGridTextColumn Header="Location Stock" Binding="{Binding CurrentStock}" Width="100" Visibility="Collapsed"/>
+                            <DataGridTextColumn Header="Total Stock" Binding="{Binding TotalStockAcrossLocations}" Width="100"/>
                             <DataGridTextColumn Header="Min Stock" Binding="{Binding MinimumStock}" Width="100"/>
                             <DataGridTextColumn Header="Status" Binding="{Binding StockStatus}" Width="100"/>
                             <DataGridTextColumn Header="Last Updated" Binding="{Binding LastModified, StringFormat=MM/dd/yyyy}" Width="120"/>

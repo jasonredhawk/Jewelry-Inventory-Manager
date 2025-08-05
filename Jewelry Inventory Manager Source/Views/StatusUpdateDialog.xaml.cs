@@ -80,9 +80,9 @@ namespace Moonglow_DB.Views
                 TransferStatus.Created => "📦 Created: Transfer order has been created and items are being prepared for shipment.\n\nYou can skip to any status, including directly to Completed if the transfer has already been processed.",
                 TransferStatus.InTransit => "🚚 In Transit: Items have been shipped and are en route to the destination.\n\nYou can skip to Delivered or Completed if the items have already arrived.",
                 TransferStatus.Delivered => "📦 Delivered: Items have arrived at the destination location.\n\nReady to execute transfer to update stock levels.",
-                TransferStatus.Completed => "✅ Completed: Transfer has been executed and stock levels have been updated.\n\nThis is the final status for successful transfers.",
+                TransferStatus.Completed => "✅ Completed: Transfer has been executed and stock levels have been updated.\n\n⚠️ IMPORTANT: If you revert from Completed status, stock levels will be automatically reversed to maintain data integrity.",
                 TransferStatus.Cancelled => "❌ Cancelled: Transfer has been cancelled and will not be processed.\n\nYou can reactivate by changing to any other status.",
-                _ => "Select the new status for this transfer. You can skip intermediate states if needed."
+                _ => "Select the new status for this transfer. You can skip intermediate states if needed.\n\n⚠️ Note: Reverting from Completed status will reverse stock adjustments."
             };
         }
     }
