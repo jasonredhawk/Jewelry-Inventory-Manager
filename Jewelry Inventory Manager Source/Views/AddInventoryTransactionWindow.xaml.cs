@@ -42,17 +42,21 @@ namespace Moonglow_DB.Views
         private void LoadTransactionTypes()
         {
             cmbTransactionType.Items.Clear();
-            cmbTransactionType.Items.Add(new ComboBoxItem { Content = "Purchase" });
-            cmbTransactionType.Items.Add(new ComboBoxItem { Content = "Sale" });
-            cmbTransactionType.Items.Add(new ComboBoxItem { Content = "Adjustment" });
-            cmbTransactionType.Items.Add(new ComboBoxItem { Content = "Return" });
+            cmbTransactionType.Items.Add(new ComboBoxItem { Content = "Add Stock", Tag = "AddStock" });
+            cmbTransactionType.Items.Add(new ComboBoxItem { Content = "Remove Stock", Tag = "RemoveStock" });
+            cmbTransactionType.Items.Add(new ComboBoxItem { Content = "Adjustment", Tag = "Adjustment" });
+            cmbTransactionType.Items.Add(new ComboBoxItem { Content = "Return", Tag = "Return" });
+            cmbTransactionType.Items.Add(new ComboBoxItem { Content = "Transfer", Tag = "Transfer" });
         }
 
         private void LoadItemTypes()
         {
             cmbItemType.Items.Clear();
-            cmbItemType.Items.Add(new ComboBoxItem { Content = "Product" });
-            cmbItemType.Items.Add(new ComboBoxItem { Content = "Component" });
+            cmbItemType.Items.Add(new ComboBoxItem { Content = "Component", Tag = "Component" });
+            cmbItemType.Items.Add(new ComboBoxItem { Content = "Product", Tag = "Product" });
+            
+            // Default to Component since products have special handling
+            cmbItemType.SelectedIndex = 0;
         }
 
         private void LoadLocations()
@@ -94,8 +98,8 @@ namespace Moonglow_DB.Views
                 // Initialize the filtered combo box
                 filteredItemComboBox.Initialize(filterService, _allProducts, _allComponents);
                 
-                // Set default to products
-                filteredItemComboBox.SetItemType(true);
+                // Set default to components
+                filteredItemComboBox.SetItemType(false);
             }
             catch (Exception ex)
             {
@@ -103,47 +107,76 @@ namespace Moonglow_DB.Views
             }
         }
 
-        
-
         private void cmbTransactionType_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            // Temporarily disabled - lblQuantity control doesn't exist
-            /*
             if (cmbTransactionType.SelectedItem is ComboBoxItem selectedItem)
             {
-                var transactionType = selectedItem.Content.ToString();
-                switch (transactionType)
-                {
-                    case "Purchase":
-                        lblQuantity.Content = "Quantity Purchased:";
-                        break;
-                    case "Sale":
-                        lblQuantity.Content = "Quantity Sold:";
-                        break;
-                    case "Adjustment":
-                        lblQuantity.Content = "Adjustment Quantity:";
-                        break;
-                    case "Return":
-                        lblQuantity.Content = "Quantity Returned:";
-                        break;
-                }
+                var transactionType = selectedItem.Tag?.ToString() ?? "Adjustment";
+                UpdateTransactionTypeExplanation(transactionType);
             }
-            */
+        }
+
+        private void UpdateTransactionTypeExplanation(string transactionType)
+        {
+            var explanation = transactionType switch
+            {
+                "AddStock" => "📦 Add Stock: Add items to inventory (e.g., receiving new components, found extra items).",
+                "RemoveStock" => "💰 Remove Stock: Remove items from inventory (e.g., using components in production, damage, loss).",
+                "Adjustment" => "⚖️ Adjustment: Correct inventory discrepancies (e.g., found extra items, damage, etc.).",
+                "Return" => "🔄 Return: Return items to inventory. For products, this will restock their components automatically.",
+                "Transfer" => "🚚 Transfer: Move stock between locations.",
+                _ => "Select a transaction type to see its description"
+            };
+            
+            txtTransactionTypeExplanation.Text = explanation;
         }
 
         private void cmbItemType_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             _selectedItem = null;
+            txtCurrentStockInfo.Text = "Select an item to see current stock information";
 
             if (cmbItemType.SelectedItem is ComboBoxItem selectedItem)
             {
-                if (selectedItem.Content.ToString() == "Product")
+                var itemType = selectedItem.Tag?.ToString() ?? "Component";
+                
+                if (itemType == "Product")
                 {
-                    filteredItemComboBox.SetItemType(true);
+                    // Check if this is a Return transaction - products can be returned
+                    var transactionType = (cmbTransactionType.SelectedItem as ComboBoxItem)?.Tag?.ToString();
+                    if (transactionType == "Return")
+                    {
+                        // Allow product returns
+                        filteredItemComboBox.SetItemType(true);
+                        return;
+                    }
+                    else
+                    {
+                        // Show warning for other transaction types
+                        ErrorDialog.ShowWarning(
+                            "⚠️ Product Stock Warning\n\n" +
+                            "Products should not have direct stock adjustments except for returns.\n\n" +
+                            "For other transactions, you should:\n" +
+                            "• Add/remove component stock instead\n" +
+                            "• Use component transformations\n" +
+                            "• Transfer components between locations\n\n" +
+                            "Please select 'Component' as the item type for inventory transactions, or use 'Return' for product returns.",
+                            "Product Stock Adjustment Not Allowed"
+                        );
+                        
+                        // Reset to Component
+                        cmbItemType.SelectedIndex = 0;
+                        return;
+                    }
                 }
-                else if (selectedItem.Content.ToString() == "Component")
+                
+                if (itemType == "Component")
                 {
                     filteredItemComboBox.SetItemType(false);
+                }
+                else
+                {
+                    filteredItemComboBox.SetItemType(true);
                 }
             }
         }
@@ -162,6 +195,18 @@ namespace Moonglow_DB.Views
                         CurrentStock = product.CurrentStock,
                         MinimumStock = product.MinimumStock
                     };
+                    
+                    // Show product stock information (calculated from components)
+                    var totalStock = 0;
+                    var locations = _databaseContext.GetAllLocations();
+                    foreach (var location in locations.Where(l => l.IsActive))
+                    {
+                        totalStock += _databaseContext.GetProductStock(product.Id, location.Id);
+                    }
+                    
+                    txtCurrentStockInfo.Text = $"Product: {product.Name}\n" +
+                                             $"Calculated Stock: {totalStock} (based on component availability)\n" +
+                                             $"Note: Product stock is calculated automatically from component stock levels.";
                 }
                 else if (displayItem.Item is Component component)
                 {
@@ -173,11 +218,30 @@ namespace Moonglow_DB.Views
                         CurrentStock = component.CurrentStock,
                         MinimumStock = component.MinimumStock
                     };
+                    
+                    // Show component stock information
+                    var totalStock = 0;
+                    var locations = _databaseContext.GetAllLocations();
+                    var locationDetails = new List<string>();
+                    
+                    foreach (var location in locations.Where(l => l.IsActive))
+                    {
+                        var stock = _databaseContext.GetComponentStock(component.Id, location.Id);
+                        totalStock += stock;
+                        locationDetails.Add($"{location.Name}: {stock}");
+                    }
+                    
+                    txtCurrentStockInfo.Text = $"Component: {component.Name}\n" +
+                                             $"Total Stock: {totalStock}\n" +
+                                             $"By Location:\n{string.Join("\n", locationDetails)}";
                 }
             }
+            else
+            {
+                _selectedItem = null;
+                txtCurrentStockInfo.Text = "Select an item to see current stock information";
+            }
         }
-
-
 
         private void btnSave_Click(object sender, RoutedEventArgs e)
         {
@@ -201,6 +265,22 @@ namespace Moonglow_DB.Views
                 return false;
             }
 
+            // Check if this is a product transaction
+            var isProduct = cmbItemType.SelectedItem is ComboBoxItem selectedItem && 
+                           selectedItem.Tag?.ToString() == "Product";
+            var transactionType = (cmbTransactionType.SelectedItem as ComboBoxItem)?.Tag?.ToString();
+
+            // Only allow product returns, not other transaction types
+            if (isProduct && transactionType != "Return")
+            {
+                ErrorDialog.ShowWarning(
+                    "Products can only be returned, not directly adjusted.\n\n" +
+                    "For other transactions, please select 'Component' as the item type and adjust component stock instead.",
+                    "Product Transaction Not Allowed"
+                );
+                return false;
+            }
+
             if (_selectedItem == null)
             {
                 ErrorDialog.ShowWarning("Please select an item.", "Validation Error");
@@ -215,7 +295,7 @@ namespace Moonglow_DB.Views
 
             if (!int.TryParse(txtQuantity.Text, out int quantity) || quantity <= 0)
             {
-                ErrorDialog.ShowWarning("Please enter a valid quantity.", "Validation Error");
+                ErrorDialog.ShowWarning("Please enter a valid quantity greater than 0.", "Validation Error");
                 return false;
             }
 
@@ -226,21 +306,31 @@ namespace Moonglow_DB.Views
         {
             try
             {
-                var transactionType = cmbTransactionType.SelectedItem?.ToString() ?? "Adjustment";
+                var transactionType = (cmbTransactionType.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "Adjustment";
                 var quantity = int.Parse(txtQuantity.Text);
+                var isProduct = GetSelectedItemType() == "Product";
                 
-                var transaction = new InventoryTransaction
+                if (isProduct && transactionType == "Return")
                 {
-                    TransactionType = GetTransactionType(transactionType),
-                    ItemType = GetSelectedItemType(),
-                    ItemId = GetSelectedItemId(),
-                    LocationId = GetSelectedLocationId(),
-                    Quantity = GetTransactionQuantity(transactionType, quantity),
-                    Notes = txtNotes.Text.Trim(),
-                    TransactionDate = DateTime.Now
-                };
-                
-                _databaseContext.SaveTransaction(transaction);
+                    // Handle product return by restocking its components
+                    HandleProductReturn(quantity);
+                }
+                else
+                {
+                    // Handle normal component transaction
+                    var transaction = new InventoryTransaction
+                    {
+                        TransactionType = GetTransactionType(transactionType),
+                        ItemType = GetSelectedItemType(),
+                        ItemId = GetSelectedItemId(),
+                        LocationId = GetSelectedLocationId(),
+                        Quantity = GetTransactionQuantity(transactionType, quantity),
+                        Notes = txtNotes.Text.Trim(),
+                        TransactionDate = DateTime.Now
+                    };
+                    
+                    _databaseContext.SaveTransaction(transaction);
+                }
                 
                 ErrorDialog.ShowSuccess("Transaction saved successfully!", "Success");
                 DialogResult = true;
@@ -252,14 +342,79 @@ namespace Moonglow_DB.Views
             }
         }
 
+        private void HandleProductReturn(int quantity)
+        {
+            try
+            {
+                var productId = GetSelectedItemId();
+                var locationId = GetSelectedLocationId();
+                var notes = txtNotes.Text.Trim();
+                
+                // Get the product and its components
+                var product = _databaseContext.GetAllProducts().FirstOrDefault(p => p.Id == productId);
+                if (product == null)
+                {
+                    throw new Exception("Product not found");
+                }
+                
+                // Get the product's components
+                var productComponents = _databaseContext.GetProductComponents(productId);
+                if (!productComponents.Any())
+                {
+                    throw new Exception("Product has no components defined");
+                }
+                
+                // Create transactions to restock each component
+                foreach (var component in productComponents)
+                {
+                    var componentTransaction = new InventoryTransaction
+                    {
+                        TransactionType = TransactionType.Return,
+                        ItemType = "Component",
+                        ItemId = component.ComponentId,
+                        LocationId = locationId,
+                        Quantity = component.Quantity * quantity, // Restock the component quantity used in the product
+                        Notes = $"Product return restock: {product.Name} (Qty: {quantity}) - {notes}",
+                        TransactionDate = DateTime.Now
+                    };
+                    
+                    _databaseContext.SaveTransaction(componentTransaction);
+                }
+                
+                // Build detailed component list for the success message
+                var componentDetails = new List<string>();
+                foreach (var component in productComponents)
+                {
+                    var restockQuantity = component.Quantity * quantity;
+                    componentDetails.Add($"• {component.Component.Name} (SKU: {component.Component.SKU}): {restockQuantity} units");
+                }
+                
+                var componentList = string.Join("\n", componentDetails);
+                
+                ErrorDialog.ShowSuccess(
+                    $"Product return processed successfully!\n\n" +
+                    $"Returned {quantity} x {product.Name}\n" +
+                    $"Restocked {productComponents.Count()} component types:\n\n" +
+                    $"{componentList}\n\n" +
+                    $"Total components restocked: {productComponents.Sum(c => c.Quantity * quantity)}",
+                    "Product Return Completed"
+                );
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error processing product return: {ex.Message}");
+            }
+        }
+
         private TransactionType GetTransactionType(string transactionType)
         {
             return transactionType switch
             {
-                "Purchase" => TransactionType.Purchase,
-                "Sale" => TransactionType.Sale,
+                "AddStock" => TransactionType.Purchase,
+                "RemoveStock" => TransactionType.Sale,
                 "Adjustment" => TransactionType.Adjustment,
                 "Return" => TransactionType.Return,
+                "Transfer" => TransactionType.Transfer,
                 _ => TransactionType.Adjustment
             };
         }
@@ -268,9 +423,9 @@ namespace Moonglow_DB.Views
         {
             return transactionType switch
             {
-                "Sale" => -quantity, // Negative for sales
+                "RemoveStock" => -quantity, // Negative for removing stock
                 "Return" => quantity, // Positive for returns
-                _ => quantity // Positive for purchases and adjustments
+                _ => quantity // Positive for adding stock, adjustments, and transfers
             };
         }
 
@@ -278,7 +433,7 @@ namespace Moonglow_DB.Views
         {
             if (cmbItemType.SelectedItem is ComboBoxItem selectedItem)
             {
-                return selectedItem.Content?.ToString() ?? "Component";
+                return selectedItem.Tag?.ToString() ?? "Component";
             }
             return "Component";
         }
@@ -302,42 +457,11 @@ namespace Moonglow_DB.Views
             Close();
         }
 
-        private void UpdateQuantityLabel()
-        {
-            // Temporarily disabled - lblQuantity control doesn't exist
-            /*
-            if (lblQuantity != null)
-            {
-                lblQuantity.Content = $"Quantity: {txtQuantity.Text}";
-            }
-            */
-        }
-
-        private void txtQuantity_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
-        {
-            // Temporarily disabled - lblQuantity control doesn't exist
-            /*
-            UpdateQuantityLabel();
-            */
-        }
-
         private void txtQuantity_PreviewTextInput(object sender, System.Windows.Input.TextCompositionEventArgs e)
         {
-            // Temporarily disabled - lblQuantity control doesn't exist
-            /*
-            e.Handled = !int.TryParse(e.Text, out _);
-            */
-        }
-
-        private void txtQuantity_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
-        {
-            // Temporarily disabled - lblQuantity control doesn't exist
-            /*
-            if (e.Key == System.Windows.Input.Key.Space)
-            {
-                e.Handled = true;
-            }
-            */
+            // Only allow numbers
+            var regex = new System.Text.RegularExpressions.Regex("[^0-9]+");
+            e.Handled = regex.IsMatch(e.Text);
         }
     }
 } 

@@ -998,5 +998,50 @@ namespace Moonglow_DB.Data
             
             return components;
         }
+
+        // Get all components that make up a product
+        public List<ProductComponent> GetProductComponents(int productId)
+        {
+            var productComponents = new List<ProductComponent>();
+            
+            var sql = @"
+                SELECT pc.ComponentId, pc.Quantity, c.Id, c.Name, c.SKU, c.Description, c.CategoryId, c.Cost, c.Price, c.IsActive, c.CreatedDate, c.LastModified
+                FROM ProductComponents pc
+                INNER JOIN Components c ON pc.ComponentId = c.Id
+                WHERE pc.ProductId = @ProductId
+                ORDER BY c.Name";
+            
+            using var command = CreateCommand(sql);
+            command.Parameters.AddWithValue("@ProductId", productId);
+            
+            using var reader = command.ExecuteReader();
+            
+            while (reader.Read())
+            {
+                var component = new Component
+                {
+                    Id = reader.GetInt32(2),
+                    Name = reader.GetString(3),
+                    SKU = reader.GetString(4),
+                    Description = reader.IsDBNull(5) ? "" : reader.GetString(5),
+                    CategoryId = reader.IsDBNull(6) ? 0 : reader.GetInt32(6),
+                    Cost = reader.IsDBNull(7) ? 0 : reader.GetDecimal(7),
+                    Price = reader.IsDBNull(8) ? 0 : reader.GetDecimal(8),
+                    IsActive = reader.GetBoolean(9),
+                    CreatedDate = reader.GetDateTime(10),
+                    LastModified = reader.GetDateTime(11)
+                };
+                
+                productComponents.Add(new ProductComponent
+                {
+                    ProductId = productId,
+                    ComponentId = reader.GetInt32(0),
+                    Quantity = reader.GetInt32(1),
+                    Component = component
+                });
+            }
+            
+            return productComponents;
+        }
     }
 } 
