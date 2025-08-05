@@ -1,0 +1,148 @@
+<Window x:Class="Moonglow_DB.Views.GeneratePOWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Generate Purchase Order" Height="600" Width="800"
+        WindowStartupLocation="CenterOwner"
+        Background="#F5F5F5">
+    
+    <Window.Resources>
+        <ResourceDictionary Source="../Styles/SharedStyles.xaml"/>
+    </Window.Resources>
+    
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Header -->
+        <Border Grid.Row="0" Background="#FF9800" CornerRadius="5" Margin="0,0,0,20">
+            <TextBlock Text="Generate Purchase Order" 
+                       FontSize="18" FontWeight="Bold" 
+                       Foreground="White" 
+                       HorizontalAlignment="Center" 
+                       VerticalAlignment="Center" 
+                       Padding="20,10"/>
+        </Border>
+        
+        <!-- Summary Cards -->
+        <Grid Grid.Row="1" Margin="0,0,0,20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            
+            <Border Grid.Column="0" Background="#E3F2FD" CornerRadius="5" Margin="5" Padding="10">
+                <StackPanel>
+                    <TextBlock Text="Low Stock Items" FontWeight="Bold" HorizontalAlignment="Center"/>
+                    <TextBlock x:Name="txtLowStockCount" Text="0" FontSize="20" FontWeight="Bold" 
+                               HorizontalAlignment="Center" Foreground="#1976D2"/>
+                </StackPanel>
+            </Border>
+            
+            <Border Grid.Column="1" Background="#FFF3E0" CornerRadius="5" Margin="5" Padding="10">
+                <StackPanel>
+                    <TextBlock Text="Out of Stock" FontWeight="Bold" HorizontalAlignment="Center"/>
+                    <TextBlock x:Name="txtOutOfStockCount" Text="0" FontSize="20" FontWeight="Bold" 
+                               HorizontalAlignment="Center" Foreground="#F57C00"/>
+                </StackPanel>
+            </Border>
+            
+            <Border Grid.Column="2" Background="#E8F5E8" CornerRadius="5" Margin="5" Padding="10">
+                <StackPanel>
+                    <TextBlock Text="Total Value" FontWeight="Bold" HorizontalAlignment="Center"/>
+                    <TextBlock x:Name="txtTotalValue" Text="$0.00" FontSize="20" FontWeight="Bold" 
+                               HorizontalAlignment="Center" Foreground="#388E3C"/>
+                </StackPanel>
+            </Border>
+            
+            <Border Grid.Column="3" Background="#FCE4EC" CornerRadius="5" Margin="5" Padding="10">
+                <StackPanel>
+                    <TextBlock Text="Selected Items" FontWeight="Bold" HorizontalAlignment="Center"/>
+                    <TextBlock x:Name="txtSelectedCount" Text="0" FontSize="20" FontWeight="Bold" 
+                               HorizontalAlignment="Center" Foreground="#C2185B"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+        
+        <!-- Items List -->
+        <Grid Grid.Row="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            
+            <!-- Filter Controls -->
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
+                <TextBlock Text="Filter:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <ComboBox x:Name="cmbFilter" Width="150" Margin="0,0,10,0"
+                          SelectionChanged="cmbFilter_SelectionChanged">
+                    <ComboBoxItem Content="All Items"/>
+                    <ComboBoxItem Content="Low Stock Only"/>
+                    <ComboBoxItem Content="Out of Stock Only"/>
+                    <ComboBoxItem Content="Products Only"/>
+                    <ComboBoxItem Content="Components Only"/>
+                </ComboBox>
+                
+                <TextBlock Text="Search:" VerticalAlignment="Center" Margin="20,0,10,0"/>
+                <TextBox x:Name="txtSearch" Width="200" Margin="0,0,10,0"
+                         TextChanged="txtSearch_TextChanged"/>
+                
+                <Button x:Name="btnRefresh" Content="Refresh" 
+                        Style="{StaticResource ModernButtonStyle}"
+                        Width="80" Height="30"
+                        Click="btnRefresh_Click"/>
+            </StackPanel>
+            
+            <!-- DataGrid -->
+            <DataGrid x:Name="dgItems" Grid.Row="1" 
+                      AutoGenerateColumns="False" 
+                      CanUserAddRows="False"
+                      SelectionMode="Extended"
+                      SelectionChanged="dgItems_SelectionChanged"
+                      CurrentCellChanged="dgItems_CurrentCellChanged">
+                <DataGrid.Columns>
+                    <DataGridCheckBoxColumn x:Name="colSelect" Header="Select" Width="60" Binding="{Binding IsSelected}"/>
+                    <DataGridTextColumn Header="SKU" Binding="{Binding SKU}" Width="100"/>
+                    <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="200"/>
+                    <DataGridTextColumn Header="Type" Binding="{Binding ItemType}" Width="80"/>
+                    <DataGridTextColumn Header="Current Stock" Binding="{Binding CurrentStock}" Width="100"/>
+                    <DataGridTextColumn Header="Minimum Stock" Binding="{Binding MinimumStock}" Width="100"/>
+                    <DataGridTextColumn Header="Status" Binding="{Binding StockStatus}" Width="100"/>
+                    <DataGridTextColumn Header="Price/Cost" Binding="{Binding Price, StringFormat=C}" Width="100"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
+        
+        <!-- Buttons -->
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+            <Button x:Name="btnSelectAll" 
+                    Content="Select All" 
+                    Style="{StaticResource WarningButtonStyle}"
+                    Width="100" Height="35" 
+                    Margin="0,0,10,0"
+                    Click="btnSelectAll_Click"/>
+            <Button x:Name="btnClearSelection" 
+                    Content="Clear Selection" 
+                    Style="{StaticResource ModernButtonStyle}"
+                    Width="120" Height="35" 
+                    Margin="0,0,10,0"
+                    Click="btnClearSelection_Click"/>
+            <Button x:Name="btnGeneratePO" 
+                    Content="Generate PO" 
+                    Style="{StaticResource SuccessButtonStyle}"
+                    Width="120" Height="35" 
+                    Margin="0,0,10,0"
+                    Click="btnGeneratePO_Click"/>
+            <Button x:Name="btnCancel" 
+                    Content="Cancel" 
+                    Style="{StaticResource DangerButtonStyle}"
+                    Width="80" Height="35"
+                    Click="btnCancel_Click"/>
+        </StackPanel>
+    </Grid>
+</Window> 

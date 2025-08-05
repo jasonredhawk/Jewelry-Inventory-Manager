@@ -1,0 +1,204 @@
+C:\Users\jason\source\WPF Apps\Moonglow DB\bin\Debug\net5.0-windows\Moonglow DB.exe
+C:\Users\jason\source\WPF Apps\Moonglow DB\bin\Debug\net5.0-windows\Moonglow DB.deps.json
+C:\Users\jason\source\WPF Apps\Moonglow DB\bin\Debug\net5.0-windows\Moonglow DB.runtimeconfig.json
+C:\Users\jason\source\WPF Apps\Moonglow DB\bin\Debug\net5.0-windows\Moonglow DB.runtimeconfig.dev.json
+C:\Users\jason\source\WPF Apps\Moonglow DB\bin\Debug\net5.0-windows\Moonglow DB.dll
+C:\Users\jason\source\WPF Apps\Moonglow DB\bin\Debug\net5.0-windows\Moonglow DB.pdb
+C:\Users\jason\source\WPF Apps\Moonglow DB\bin\Debug\net5.0-windows\CsvHelper.dll
+C:\Users\jason\source\WPF Apps\Moonglow DB\bin\Debug\net5.0-windows\Google.Protobuf.dll
+C:\Users\jason\source\WPF Apps\Moonglow DB\bin\Debug\net5.0-windows\K4os.Compression.LZ4.dll
+C:\Users\jason\source\WPF Apps\Moonglow DB\bin\Debug\net5.0-windows\K4os.Compression.LZ4.Streams.dll
+C:\Users\jason\source\WPF Apps\Moonglow DB\bin\Debug\net5.0-windows\K4os.Hash.xxHash.dll
+C:\Users\jason\source\WPF Apps\Moonglow DB\bin\Debug\net5.0-windows\Microsoft.Bcl.AsyncInterfaces.dll
+C:\Users\jason\source\WPF Apps\Moonglow DB\bin\Debug\net5.0-windows\MySql.Data.dll
+C:\Users\jason\source\WPF Apps\Moonglow DB\bin\Debug\net5.0-windows\Newtonsoft.Json.dll
+C:\Users\jason\source\WPF Apps\Moonglow DB\bin\Debug\net5.0-windows\BouncyCastle.Crypto.dll
+C:\Users\jason\source\WPF Apps\Moonglow DB\bin\Debug\net5.0-windows\System.IO.Pipelines.dll
+C:\Users\jason\source\WPF Apps\Moonglow DB\bin\Debug\net5.0-windows\System.Runtime.CompilerServices.Unsafe.dll
+C:\Users\jason\source\WPF Apps\Moonglow DB\bin\Debug\net5.0-windows\System.Text.Encodings.Web.dll
+C:\Users\jason\source\WPF Apps\Moonglow DB\bin\Debug\net5.0-windows\System.Text.Json.dll
+C:\Users\jason\source\WPF Apps\Moonglow DB\bin\Debug\net5.0-windows\runtimes\win-x64\native\comerr64.dll
+C:\Users\jason\source\WPF Apps\Moonglow DB\bin\Debug\net5.0-windows\runtimes\win-x64\native\gssapi64.dll
+C:\Users\jason\source\WPF Apps\Moonglow DB\bin\Debug\net5.0-windows\runtimes\win-x64\native\k5sprt64.dll
+C:\Users\jason\source\WPF Apps\Moonglow DB\bin\Debug\net5.0-windows\runtimes\win-x64\native\krb5_64.dll
+C:\Users\jason\source\WPF Apps\Moonglow DB\bin\Debug\net5.0-windows\runtimes\win-x64\native\krbcc64.dll
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Moonglow_DB\Views\ConnectionWindow.baml
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Moonglow_DB\Views\EditProductWindow.baml
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Styles\SharedStyles.baml
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Views\AddCategoryWindow.baml
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Views\AddComponentWindow.baml
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Views\AddEmployeeWindow.baml
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Views\AddInventoryTransactionWindow.baml
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Views\AddLocationWindow.baml
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Views\AddOrderWindow.baml
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Views\AddProductWindow.baml
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Views\AddTransactionWindow.baml
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Views\CategoriesWindow.baml
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Views\ComponentsWindow.baml
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Views\ComponentTransformationWindow.baml
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Views\CustomersWindow.baml
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Views\EditCategoryWindow.baml
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Views\EditComponentWindow.baml
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Views\EditEmployeeWindow.baml
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Views\EditLocationWindow.baml
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Views\EditOrderWindow.baml
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Views\EmployeesWindow.baml
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Views\ErrorDialog.baml
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Views\GeneratePOWindow.baml
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Views\InventoryTransferWindow.baml
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Views\InventoryWindow.baml
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Views\LocationsWindow.baml
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Views\OrdersWindow.baml
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Views\ProductsWindow.baml
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Views\ReportsWindow.baml
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Views\TransferWindow.baml
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\MainWindow.g.cs
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Moonglow_DB\Views\ConnectionWindow.g.cs
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Moonglow_DB\Views\EditProductWindow.g.cs
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Views\AddCategoryWindow.g.cs
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Views\AddComponentWindow.g.cs
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Views\AddEmployeeWindow.g.cs
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Views\AddInventoryTransactionWindow.g.cs
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Views\AddLocationWindow.g.cs
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Views\AddOrderWindow.g.cs
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Views\AddProductWindow.g.cs
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Views\AddTransactionWindow.g.cs
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Views\CategoriesWindow.g.cs
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Views\ComponentsWindow.g.cs
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Views\ComponentTransformationWindow.g.cs
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Views\CustomersWindow.g.cs
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Views\EditCategoryWindow.g.cs
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Views\EditComponentWindow.g.cs
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Views\EditEmployeeWindow.g.cs
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Views\EditLocationWindow.g.cs
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Views\EditOrderWindow.g.cs
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Views\EmployeesWindow.g.cs
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Views\ErrorDialog.g.cs
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Views\GeneratePOWindow.g.cs
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Views\InventoryTransferWindow.g.cs
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Views\InventoryWindow.g.cs
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Views\LocationsWindow.g.cs
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Views\OrdersWindow.g.cs
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Views\ProductsWindow.g.cs
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Views\ReportsWindow.g.cs
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Views\TransferWindow.g.cs
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\App.g.cs
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Moonglow DB_MarkupCompile.cache
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Moonglow DB_MarkupCompile.lref
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\MainWindow.baml
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Moonglow DB.g.resources
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Moonglow DB.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Moonglow DB.AssemblyInfoInputs.cache
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Moonglow DB.AssemblyInfo.cs
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Moonglow DB.csproj.CoreCompileInputs.cache
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Moonglow DB.csproj.CopyComplete
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Moonglow DB.dll
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Moonglow DB.pdb
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Moonglow DB.genruntimeconfig.cache
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\ref\Moonglow DB.dll
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Views\SetMinimumStockWindow.baml
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Views\SetMinimumStockWindow.g.cs
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net5.0-windows\Moonglow DB.csproj.AssemblyReference.cache
+C:\Users\jason\source\WPF Apps\Moonglow DB\bin\Debug\net5.0-windows\ref\Moonglow DB.dll
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\bin\Debug\net5.0-windows\Moonglow DB.exe
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\bin\Debug\net5.0-windows\Moonglow DB.deps.json
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\bin\Debug\net5.0-windows\Moonglow DB.runtimeconfig.json
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\bin\Debug\net5.0-windows\Moonglow DB.runtimeconfig.dev.json
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\bin\Debug\net5.0-windows\Moonglow DB.dll
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\bin\Debug\net5.0-windows\ref\Moonglow DB.dll
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\bin\Debug\net5.0-windows\Moonglow DB.pdb
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\bin\Debug\net5.0-windows\CsvHelper.dll
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\bin\Debug\net5.0-windows\Google.Protobuf.dll
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\bin\Debug\net5.0-windows\K4os.Compression.LZ4.dll
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\bin\Debug\net5.0-windows\K4os.Compression.LZ4.Streams.dll
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\bin\Debug\net5.0-windows\K4os.Hash.xxHash.dll
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\bin\Debug\net5.0-windows\Microsoft.Bcl.AsyncInterfaces.dll
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\bin\Debug\net5.0-windows\MySql.Data.dll
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\bin\Debug\net5.0-windows\Newtonsoft.Json.dll
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\bin\Debug\net5.0-windows\BouncyCastle.Crypto.dll
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\bin\Debug\net5.0-windows\System.IO.Pipelines.dll
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\bin\Debug\net5.0-windows\System.Runtime.CompilerServices.Unsafe.dll
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\bin\Debug\net5.0-windows\System.Text.Encodings.Web.dll
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\bin\Debug\net5.0-windows\System.Text.Json.dll
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\bin\Debug\net5.0-windows\runtimes\win-x64\native\comerr64.dll
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\bin\Debug\net5.0-windows\runtimes\win-x64\native\gssapi64.dll
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\bin\Debug\net5.0-windows\runtimes\win-x64\native\k5sprt64.dll
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\bin\Debug\net5.0-windows\runtimes\win-x64\native\krb5_64.dll
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\bin\Debug\net5.0-windows\runtimes\win-x64\native\krbcc64.dll
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Moonglow DB.csproj.AssemblyReference.cache
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Moonglow_DB\Views\ConnectionWindow.baml
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Moonglow_DB\Views\EditProductWindow.baml
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Styles\SharedStyles.baml
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\AddCategoryWindow.baml
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\AddComponentWindow.baml
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\AddEmployeeWindow.baml
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\AddInventoryTransactionWindow.baml
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\AddLocationWindow.baml
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\AddOrderWindow.baml
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\AddProductWindow.baml
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\AddTransactionWindow.baml
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\CategoriesWindow.baml
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\ComponentsWindow.baml
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\ComponentTransformationWindow.baml
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\CustomersWindow.baml
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\EditCategoryWindow.baml
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\EditComponentWindow.baml
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\EditEmployeeWindow.baml
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\EditLocationWindow.baml
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\EditOrderWindow.baml
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\EmployeesWindow.baml
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\ErrorDialog.baml
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\GeneratePOWindow.baml
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\InventoryTransferWindow.baml
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\InventoryWindow.baml
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\LocationsWindow.baml
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\OrdersWindow.baml
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\ProductsWindow.baml
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\ReportsWindow.baml
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\SetMinimumStockWindow.baml
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\TransferWindow.baml
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\MainWindow.g.cs
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Moonglow_DB\Views\ConnectionWindow.g.cs
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Moonglow_DB\Views\EditProductWindow.g.cs
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\AddCategoryWindow.g.cs
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\AddComponentWindow.g.cs
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\AddEmployeeWindow.g.cs
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\AddInventoryTransactionWindow.g.cs
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\AddLocationWindow.g.cs
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\AddOrderWindow.g.cs
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\AddProductWindow.g.cs
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\AddTransactionWindow.g.cs
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\CategoriesWindow.g.cs
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\ComponentsWindow.g.cs
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\ComponentTransformationWindow.g.cs
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\CustomersWindow.g.cs
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\EditCategoryWindow.g.cs
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\EditComponentWindow.g.cs
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\EditEmployeeWindow.g.cs
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\EditLocationWindow.g.cs
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\EditOrderWindow.g.cs
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\EmployeesWindow.g.cs
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\ErrorDialog.g.cs
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\GeneratePOWindow.g.cs
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\InventoryTransferWindow.g.cs
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\InventoryWindow.g.cs
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\LocationsWindow.g.cs
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\OrdersWindow.g.cs
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\ProductsWindow.g.cs
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\ReportsWindow.g.cs
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\SetMinimumStockWindow.g.cs
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\TransferWindow.g.cs
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\App.g.cs
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Moonglow DB_MarkupCompile.cache
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Moonglow DB_MarkupCompile.lref
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\MainWindow.baml
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Moonglow DB.g.resources
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Moonglow DB.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Moonglow DB.AssemblyInfoInputs.cache
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Moonglow DB.AssemblyInfo.cs
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Moonglow DB.csproj.CoreCompileInputs.cache
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Moonglow DB.csproj.CopyComplete
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Moonglow DB.dll
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\ref\Moonglow DB.dll
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Moonglow DB.pdb
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Moonglow DB.genruntimeconfig.cache

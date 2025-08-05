@@ -1,0 +1,47 @@
+<Window x:Class="Moonglow_DB.Views.ReportsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Reports &amp; Analytics" Height="600" Width="900"
+        WindowStartupLocation="CenterScreen"
+        Background="#F5F5F5">
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" Background="#673AB7" Padding="15">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="📈" FontSize="24" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <TextBlock Text="Reports &amp; Analytics" 
+                           FontSize="20" 
+                           FontWeight="Bold" 
+                           Foreground="White" 
+                           VerticalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Content -->
+        <StackPanel Grid.Row="1" Margin="20" VerticalAlignment="Center">
+            <TextBlock Text="Reports and analytics functionality will be implemented soon." 
+                       FontSize="16" 
+                       HorizontalAlignment="Center" 
+                       Margin="0,0,0,20"/>
+            
+            <TextBlock Text="This will include:" 
+                       FontSize="14" 
+                       HorizontalAlignment="Center" 
+                       Margin="0,0,0,10"/>
+            
+            <StackPanel Margin="20">
+                <TextBlock Text="• Sales reports" Margin="0,5"/>
+                <TextBlock Text="• Inventory reports" Margin="0,5"/>
+                <TextBlock Text="• Employee performance" Margin="0,5"/>
+                <TextBlock Text="• CSV export functionality" Margin="0,5"/>
+                <TextBlock Text="• Low stock alerts" Margin="0,5"/>
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+</Window> 

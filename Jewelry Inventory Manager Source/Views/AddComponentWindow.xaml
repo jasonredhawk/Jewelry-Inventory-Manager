@@ -1,0 +1,99 @@
+<Window x:Class="Moonglow_DB.Views.AddComponentWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Add New Component" Height="500" Width="600"
+        WindowStartupLocation="CenterOwner"
+        Background="#F5F5F5">
+    
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../Styles/SharedStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" Background="#4CAF50" Padding="15">
+            <TextBlock Text="Add New Component" 
+                       FontSize="18" 
+                       FontWeight="Bold" 
+                       Foreground="White" 
+                       HorizontalAlignment="Center"/>
+        </Border>
+
+        <!-- Form -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="20">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="150"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- SKU -->
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="SKU:" VerticalAlignment="Center" Margin="0,5"/>
+                    <TextBox x:Name="txtSKU" Grid.Row="0" Grid.Column="1" Style="{StaticResource ModernTextBoxStyle}"/>
+
+                    <!-- Name -->
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Name:" VerticalAlignment="Center" Margin="0,5"/>
+                    <TextBox x:Name="txtName" Grid.Row="1" Grid.Column="1" Style="{StaticResource ModernTextBoxStyle}"/>
+
+                    <!-- Description -->
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Description:" VerticalAlignment="Top" Margin="0,5"/>
+                    <TextBox x:Name="txtDescription" Grid.Row="2" Grid.Column="1" Style="{StaticResource ModernTextBoxStyle}" 
+                             Height="60" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto"/>
+
+                    <!-- Category -->
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Category:" VerticalAlignment="Center" Margin="0,5"/>
+                    <ComboBox x:Name="cmbCategory" Grid.Row="3" Grid.Column="1" Style="{StaticResource ModernComboBoxStyle}" 
+                              DisplayMemberPath="Name" SelectedValuePath="Id"/>
+
+                    <!-- Cost -->
+                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Cost:" VerticalAlignment="Center" Margin="0,5"/>
+                    <TextBox x:Name="txtCost" Grid.Row="4" Grid.Column="1" Style="{StaticResource ModernTextBoxStyle}"/>
+
+                    <!-- Is Active -->
+                    <TextBlock Grid.Row="5" Grid.Column="0" Text="Active:" VerticalAlignment="Center" Margin="0,5"/>
+                    <CheckBox x:Name="chkIsActive" Grid.Row="5" Grid.Column="1" Margin="0,5" IsChecked="True"/>
+
+                    <!-- Auto-generate SKU -->
+                    <TextBlock Grid.Row="6" Grid.Column="0" Text="Auto SKU:" VerticalAlignment="Center" Margin="0,5"/>
+                    <CheckBox x:Name="chkAutoSKU" Grid.Row="6" Grid.Column="1" Margin="0,5" 
+                              Checked="chkAutoSKU_Checked" Unchecked="chkAutoSKU_Unchecked"/>
+                </Grid>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Buttons -->
+        <Border Grid.Row="2" Background="White" Padding="15" BorderBrush="#E0E0E0" BorderThickness="0,1,0,0">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button x:Name="btnSave" 
+                        Content="Save" 
+                        Style="{StaticResource SuccessButtonStyle}"
+                        Click="btnSave_Click"/>
+                
+                <Button x:Name="btnCancel" 
+                        Content="Cancel" 
+                        Style="{StaticResource DangerButtonStyle}"
+                        Click="btnCancel_Click"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window> 

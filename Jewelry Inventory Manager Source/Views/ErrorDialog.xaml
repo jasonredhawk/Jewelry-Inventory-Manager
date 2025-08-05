@@ -1,0 +1,62 @@
+<Window x:Class="Moonglow_DB.Views.ErrorDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Dialog" Height="400" Width="600"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="CanResize">
+    
+    <Window.Resources>
+        <ResourceDictionary Source="../Styles/SharedStyles.xaml"/>
+    </Window.Resources>
+    
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,15">
+            <TextBlock x:Name="txtTitle" Text="Dialog Title" FontSize="18" FontWeight="Bold"/>
+            <TextBlock x:Name="txtSubtitle" Text="Dialog subtitle" 
+                       FontSize="12" Foreground="#666" Margin="0,5,0,0"/>
+        </StackPanel>
+        
+        <!-- Message Details -->
+        <Grid Grid.Row="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            
+            <TextBlock x:Name="txtDetailsLabel" Grid.Row="0" Text="Details:" FontWeight="Bold" Margin="0,0,0,5"/>
+            
+            <TextBox x:Name="txtErrorDetails" Grid.Row="1" 
+                     IsReadOnly="True" 
+                     VerticalScrollBarVisibility="Auto"
+                     HorizontalScrollBarVisibility="Auto"
+                     FontFamily="Consolas"
+                     FontSize="11"
+                     Background="#F5F5F5"
+                     BorderBrush="#CCCCCC"
+                     Padding="10"/>
+        </Grid>
+        
+        <!-- Buttons -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+            <Button x:Name="btnCopy" Content="Copy to Clipboard" 
+                    Style="{StaticResource ModernButtonStyle}"
+                    Click="btnCopy_Click" Margin="0,0,10,0" Visibility="Collapsed"/>
+            <Button x:Name="btnYes" Content="Yes" 
+                    Style="{StaticResource ModernButtonStyle}"
+                    Click="btnYes_Click" Margin="0,0,10,0" Visibility="Collapsed"/>
+            <Button x:Name="btnNo" Content="No" 
+                    Style="{StaticResource ModernButtonStyle}"
+                    Click="btnNo_Click" Margin="0,0,10,0" Visibility="Collapsed"/>
+            <Button x:Name="btnClose" Content="Close" 
+                    Style="{StaticResource ModernButtonStyle}"
+                    Click="btnClose_Click"/>
+        </StackPanel>
+    </Grid>
+</Window> 

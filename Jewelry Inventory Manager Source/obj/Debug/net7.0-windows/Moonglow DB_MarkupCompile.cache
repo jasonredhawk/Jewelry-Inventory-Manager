@@ -1,0 +1,20 @@
+﻿Moonglow DB
+
+
+winexe
+C#
+.cs
+C:\Users\jason\source\WPF Apps\Moonglow DB\obj\Debug\net7.0-windows\
+Moonglow_DB
+none
+false
+TRACE;DEBUG;NET;NET7_0;NETCOREAPP
+C:\Users\jason\source\WPF Apps\Moonglow DB\App.xaml
+31-538390649
+
+50850125675
+2071127874641
+MainWindow.xaml;Moonglow_DB\Views\ConnectionWindow.xaml;Moonglow_DB\Views\EditProductWindow.xaml;Styles\SharedStyles.xaml;Views\AddCategoryWindow.xaml;Views\AddComponentWindow.xaml;Views\AddEmployeeWindow.xaml;Views\AddInventoryTransactionWindow.xaml;Views\AddLocationWindow.xaml;Views\AddOrderWindow.xaml;Views\AddProductWindow.xaml;Views\AddTransactionWindow.xaml;Views\CategoriesWindow.xaml;Views\ComponentsWindow.xaml;Views\ComponentTransformationWindow.xaml;Views\CustomersWindow.xaml;Views\EditCategoryWindow.xaml;Views\EditComponentWindow.xaml;Views\EditEmployeeWindow.xaml;Views\EditLocationWindow.xaml;Views\EditOrderWindow.xaml;Views\EmployeesWindow.xaml;Views\ErrorDialog.xaml;Views\GeneratePOWindow.xaml;Views\InventoryTransferWindow.xaml;Views\InventoryWindow.xaml;Views\LocationsWindow.xaml;Views\OrdersWindow.xaml;Views\ProductsWindow.xaml;Views\ReportsWindow.xaml;Views\TransferWindow.xaml;
+
+False
+

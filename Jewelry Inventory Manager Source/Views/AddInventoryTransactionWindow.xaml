@@ -1,0 +1,96 @@
+<Window x:Class="Moonglow_DB.Views.AddInventoryTransactionWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Add Inventory Transaction" Height="500" Width="600"
+        WindowStartupLocation="CenterOwner"
+        Background="#F5F5F5">
+    
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../Styles/SharedStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" Background="#FF9800" Padding="15">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="📊" FontSize="24" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <TextBlock Text="Add Inventory Transaction" 
+                           FontSize="20" 
+                           FontWeight="Bold" 
+                           Foreground="White" 
+                           VerticalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Form -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="20" VerticalAlignment="Top">
+                
+                <!-- Transaction Type -->
+                <TextBlock Text="Transaction Type *" FontWeight="Bold" Margin="0,0,0,5"/>
+                <ComboBox x:Name="cmbTransactionType" 
+                          Style="{StaticResource ModernComboBoxStyle}"
+                          SelectionChanged="cmbTransactionType_SelectionChanged"
+                          Margin="0,0,0,15"/>
+
+                <!-- Item Type -->
+                <TextBlock Text="Item Type *" FontWeight="Bold" Margin="0,0,0,5"/>
+                <ComboBox x:Name="cmbItemType" 
+                          Style="{StaticResource ModernComboBoxStyle}"
+                          SelectionChanged="cmbItemType_SelectionChanged"
+                          Margin="0,0,0,15"/>
+
+                <!-- Item Selection -->
+                <TextBlock Text="Item *" FontWeight="Bold" Margin="0,0,0,5"/>
+                <ComboBox x:Name="cmbItem" 
+                          Style="{StaticResource ModernComboBoxStyle}"
+                          Margin="0,0,0,15"/>
+
+                <!-- Location -->
+                <TextBlock Text="Location *" FontWeight="Bold" Margin="0,0,0,5"/>
+                <ComboBox x:Name="cmbLocation" 
+                          Style="{StaticResource ModernComboBoxStyle}"
+                          Margin="0,0,0,15"/>
+
+                <!-- Quantity -->
+                <TextBlock Text="Quantity *" FontWeight="Bold" Margin="0,0,0,5"/>
+                <TextBox x:Name="txtQuantity" 
+                         Style="{StaticResource ModernTextBoxStyle}"
+                         Text="0"
+                         PreviewTextInput="txtQuantity_PreviewTextInput"
+                         Margin="0,0,0,15"/>
+
+                <!-- Notes -->
+                <TextBlock Text="Notes" FontWeight="Bold" Margin="0,0,0,5"/>
+                <TextBox x:Name="txtNotes" 
+                         Style="{StaticResource ModernTextBoxStyle}"
+                         Height="80"
+                         TextWrapping="Wrap"
+                         AcceptsReturn="True"
+                         VerticalScrollBarVisibility="Auto"
+                         Margin="0,0,0,15"/>
+
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Buttons -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="20">
+            <Button x:Name="btnSave" Content="💾 Save Transaction" 
+                    Style="{StaticResource SuccessButtonStyle}"
+                    Click="btnSave_Click" Margin="0,0,10,0"/>
+            <Button x:Name="btnCancel" Content="❌ Cancel" 
+                    Style="{StaticResource ModernButtonStyle}"
+                    Click="btnCancel_Click"/>
+        </StackPanel>
+    </Grid>
+</Window> 

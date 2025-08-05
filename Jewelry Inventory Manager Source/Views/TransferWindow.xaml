@@ -1,0 +1,136 @@
+<Window x:Class="Moonglow_DB.Views.TransferWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Transfer Inventory" Height="500" Width="600"
+        WindowStartupLocation="CenterOwner"
+        Background="#F5F5F5">
+    
+    <Window.Resources>
+        <ResourceDictionary Source="../Styles/SharedStyles.xaml"/>
+    </Window.Resources>
+    
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Header -->
+        <Border Grid.Row="0" Background="#FF9800" CornerRadius="5" Margin="0,0,0,20">
+            <TextBlock Text="Transfer Inventory Between Locations" 
+                       FontSize="18" FontWeight="Bold" 
+                       Foreground="White" 
+                       HorizontalAlignment="Center" 
+                       VerticalAlignment="Center" 
+                       Padding="20,10"/>
+        </Border>
+        
+        <!-- Form -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <!-- From Location -->
+                <TextBlock Text="From Location:" FontWeight="Bold" Margin="0,0,0,5"/>
+                <ComboBox x:Name="cmbSourceLocation" 
+                          Margin="0,0,0,15"
+                          DisplayMemberPath="Name"
+                          SelectionChanged="cmbSourceLocation_SelectionChanged"/>
+                
+                <!-- To Location -->
+                <TextBlock Text="To Location:" FontWeight="Bold" Margin="0,0,0,5"/>
+                <ComboBox x:Name="cmbDestinationLocation" 
+                          Margin="0,0,0,15"
+                          DisplayMemberPath="Name"
+                          SelectionChanged="cmbDestinationLocation_SelectionChanged"/>
+                
+                <!-- Item Type -->
+                <TextBlock Text="Item Type:" FontWeight="Bold" Margin="0,0,0,5"/>
+                <ComboBox x:Name="cmbItemType" 
+                          Margin="0,0,0,15"
+                          SelectionChanged="cmbItemType_SelectionChanged">
+                    <ComboBoxItem Content="Product"/>
+                    <ComboBoxItem Content="Component"/>
+                </ComboBox>
+                
+                <!-- Item Selection -->
+                <TextBlock Text="Item:" FontWeight="Bold" Margin="0,0,0,5"/>
+                <ComboBox x:Name="cmbItem" 
+                          Margin="0,0,0,5"
+                          DisplayMemberPath="Name"
+                          SelectionChanged="cmbItem_SelectionChanged"/>
+                
+                <!-- Quantity -->
+                <TextBlock Text="Quantity:" FontWeight="Bold" Margin="0,0,0,5"/>
+                <TextBox x:Name="txtQuantity" 
+                         Style="{StaticResource ModernTextBoxStyle}"
+                         Margin="0,0,0,5"
+                         PreviewTextInput="txtQuantity_PreviewTextInput"/>
+                
+                <!-- Add Item Button -->
+                <Button x:Name="btnAddItem" 
+                        Content="Add to Transfer List" 
+                        Style="{StaticResource WarningButtonStyle}"
+                        Width="150" Height="30" 
+                        Margin="0,0,0,15"
+                        Click="btnAddItem_Click"/>
+                
+                <!-- Transfer List -->
+                <TextBlock Text="Transfer List:" FontWeight="Bold" Margin="0,0,0,5"/>
+                <DataGrid x:Name="dgTransferItems" 
+                          Height="150" 
+                          Margin="0,0,0,15"
+                          AutoGenerateColumns="False"
+                          CanUserAddRows="False">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Item" Binding="{Binding ItemName}" Width="200"/>
+                        <DataGridTextColumn Header="Type" Binding="{Binding ItemType}" Width="80"/>
+                        <DataGridTextColumn Header="Quantity" Binding="{Binding Quantity}" Width="80"/>
+                        <DataGridTextColumn Header="From" Binding="{Binding FromLocation}" Width="100"/>
+                        <DataGridTextColumn Header="To" Binding="{Binding ToLocation}" Width="100"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+                
+                <!-- Remove Item Button -->
+                <Button x:Name="btnRemoveItem" 
+                        Content="Remove Selected" 
+                        Style="{StaticResource DangerButtonStyle}"
+                        Width="120" Height="30" 
+                        Margin="0,0,0,15"
+                        Click="btnRemoveItem_Click"/>
+                
+                <!-- Notes -->
+                <TextBlock Text="Notes:" FontWeight="Bold" Margin="0,0,0,5"/>
+                <TextBox x:Name="txtNotes" 
+                         Style="{StaticResource ModernTextBoxStyle}"
+                         Margin="0,0,0,15"
+                         Height="80"
+                         TextWrapping="Wrap"
+                         AcceptsReturn="True"
+                         VerticalScrollBarVisibility="Auto"/>
+                
+                <!-- Stock Information -->
+                <Border Background="#E3F2FD" CornerRadius="5" Padding="10" Margin="0,0,0,15">
+                    <StackPanel>
+                        <TextBlock Text="Stock Information:" FontWeight="Bold" Margin="0,0,0,5"/>
+                        <TextBlock x:Name="txtStockInfo" Text="Select locations and item to see stock information"/>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+        
+        <!-- Buttons -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+            <Button x:Name="btnTransfer" 
+                    Content="Transfer Items" 
+                    Style="{StaticResource SuccessButtonStyle}"
+                    Width="120" Height="35" 
+                    Margin="0,0,10,0"
+                    Click="btnTransfer_Click"/>
+            <Button x:Name="btnCancel" 
+                    Content="Cancel" 
+                    Style="{StaticResource DangerButtonStyle}"
+                    Width="80" Height="35"
+                    Click="btnCancel_Click"/>
+        </StackPanel>
+    </Grid>
+</Window> 

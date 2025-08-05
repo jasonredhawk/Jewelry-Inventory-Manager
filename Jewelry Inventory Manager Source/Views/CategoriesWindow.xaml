@@ -1,0 +1,97 @@
+<Window x:Class="Moonglow_DB.Views.CategoriesWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Category Management" Height="600" Width="800"
+        WindowStartupLocation="CenterScreen"
+        Background="#F5F5F5">
+    
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../Styles/SharedStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" Background="#9C27B0" Padding="15">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="📂" FontSize="24" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <TextBlock Text="Category Management" 
+                           FontSize="20" 
+                           FontWeight="Bold" 
+                           Foreground="White" 
+                           VerticalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Toolbar -->
+        <Border Grid.Row="1" Background="White" Padding="15" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1">
+            <StackPanel Orientation="Horizontal">
+                <Button x:Name="btnAddCategory" 
+                        Content="➕ Add Category" 
+                        Style="{StaticResource SuccessButtonStyle}"
+                        Click="btnAddCategory_Click"/>
+                
+                <Button x:Name="btnEditCategory" 
+                        Content="✏️ Edit Category" 
+                        Style="{StaticResource ModernButtonStyle}"
+                        Click="btnEditCategory_Click"/>
+                
+                <Button x:Name="btnDeleteCategory" 
+                        Content="🗑️ Delete" 
+                        Style="{StaticResource DangerButtonStyle}"
+                        Click="btnDeleteCategory_Click"/>
+                
+                <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="20,0"/>
+                
+                <TextBlock Text="Search:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <TextBox x:Name="txtSearch" 
+                         Width="200" 
+                         Style="{StaticResource ModernTextBoxStyle}"
+                         TextChanged="txtSearch_TextChanged"
+                         VerticalAlignment="Center"/>
+                
+                <TextBlock Text="Filter:" VerticalAlignment="Center" Margin="20,0,10,0"/>
+                <ComboBox x:Name="cmbFilter" Width="150"
+                          Style="{StaticResource ModernComboBoxStyle}"
+                          SelectionChanged="cmbFilter_SelectionChanged">
+                    <ComboBoxItem Content="All"/>
+                    <ComboBoxItem Content="Active"/>
+                    <ComboBoxItem Content="Inactive"/>
+                </ComboBox>
+            </StackPanel>
+        </Border>
+
+        <!-- DataGrid -->
+        <DataGrid x:Name="dgCategories" 
+                  Grid.Row="2" 
+                  Margin="15"
+                  AutoGenerateColumns="False"
+                  CanUserAddRows="False"
+                  CanUserDeleteRows="False"
+                  SelectionMode="Single"
+                  SelectionChanged="dgCategories_SelectionChanged"
+                  Background="White"
+                  BorderBrush="#E0E0E0"
+                  GridLinesVisibility="Horizontal"
+                  HeadersVisibility="Column">
+            
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Name" Binding="{Binding FullName}" Width="250"/>
+                <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="200"/>
+                <DataGridTextColumn Header="Parent" Binding="{Binding Parent.Name}" Width="150"/>
+                <DataGridTextColumn Header="Sort Order" Binding="{Binding SortOrder}" Width="100"/>
+                <DataGridTextColumn Header="Active" Binding="{Binding IsActive}" Width="80"/>
+                <DataGridTextColumn Header="Created" Binding="{Binding CreatedDate, StringFormat=MM/dd/yyyy}" Width="100"/>
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</Window> 

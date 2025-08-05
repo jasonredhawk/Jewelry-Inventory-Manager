@@ -1,0 +1,106 @@
+<Window x:Class="Moonglow_DB.Views.OrdersWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Orders &amp; Sales Management" Height="700" Width="1200"
+        WindowStartupLocation="CenterScreen"
+        Background="#F5F5F5">
+    
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../Styles/SharedStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" Background="#009688" Padding="15">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="🛒" FontSize="24" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <TextBlock Text="Orders &amp; Sales Management" 
+                           FontSize="20" 
+                           FontWeight="Bold" 
+                           Foreground="White" 
+                           VerticalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Toolbar -->
+        <Border Grid.Row="1" Background="White" Padding="15" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1">
+            <StackPanel Orientation="Horizontal">
+                <Button x:Name="btnAddOrder" 
+                        Content="➕ New Order" 
+                        Style="{StaticResource SuccessButtonStyle}"
+                        Click="btnAddOrder_Click"/>
+                
+                <Button x:Name="btnEditOrder" 
+                        Content="✏️ Edit Order" 
+                        Style="{StaticResource ModernButtonStyle}"
+                        Click="btnEditOrder_Click"/>
+                
+                <Button x:Name="btnDeleteOrder" 
+                        Content="🗑️ Delete" 
+                        Style="{StaticResource DangerButtonStyle}"
+                        Click="btnDeleteOrder_Click"/>
+                
+                <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="20,0"/>
+                
+                <TextBlock Text="Status Filter:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <ComboBox x:Name="cmbStatusFilter" 
+                          Width="120" 
+                          SelectionChanged="cmbStatusFilter_SelectionChanged"
+                          VerticalAlignment="Center"/>
+                
+                <TextBlock Text="Employee Filter:" VerticalAlignment="Center" Margin="20,0,10,0"/>
+                <ComboBox x:Name="cmbEmployeeFilter" 
+                          Width="150" 
+                          SelectionChanged="cmbEmployeeFilter_SelectionChanged"
+                          VerticalAlignment="Center"/>
+                
+                <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="20,0"/>
+                
+                <TextBlock Text="Search:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <TextBox x:Name="txtSearch" 
+                         Width="200" 
+                         Style="{StaticResource ModernTextBoxStyle}"
+                         TextChanged="txtSearch_TextChanged"
+                         VerticalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+
+        <!-- DataGrid -->
+        <DataGrid x:Name="dgOrders" 
+                  Grid.Row="2" 
+                  Margin="15"
+                  AutoGenerateColumns="False"
+                  CanUserAddRows="False"
+                  CanUserDeleteRows="False"
+                  SelectionMode="Single"
+                  SelectionChanged="dgOrders_SelectionChanged"
+                  Background="White"
+                  BorderBrush="#E0E0E0"
+                  GridLinesVisibility="Horizontal"
+                  HeadersVisibility="Column">
+            
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Order #" Binding="{Binding OrderNumber}" Width="100"/>
+                <DataGridTextColumn Header="Customer" Binding="{Binding CustomerName}" Width="150"/>
+                <DataGridTextColumn Header="Employee" Binding="{Binding EmployeeName}" Width="120"/>
+                <DataGridTextColumn Header="Type" Binding="{Binding OrderType}" Width="100"/>
+                <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="100"/>
+                <DataGridTextColumn Header="Total Amount" Binding="{Binding TotalAmount, StringFormat=C}" Width="120"/>
+                <DataGridTextColumn Header="Commission" Binding="{Binding CommissionAmount, StringFormat=C}" Width="100"/>
+                <DataGridTextColumn Header="Items" Binding="{Binding ItemCount}" Width="80"/>
+                <DataGridTextColumn Header="Created Date" Binding="{Binding CreatedDate, StringFormat=MM/dd/yyyy}" Width="120"/>
+                <DataGridTextColumn Header="Last Modified" Binding="{Binding LastModified, StringFormat=MM/dd/yyyy}" Width="120"/>
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</Window> 

@@ -1,0 +1,235 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    
+    <!-- Modern Button Style -->
+    <Style x:Key="ModernButtonStyle" TargetType="Button">
+        <Setter Property="Background" Value="#2196F3"/>
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Padding" Value="20,15"/>
+        <Setter Property="Margin" Value="5"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}" 
+                            CornerRadius="6"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            Padding="8,6">
+                        <ContentPresenter HorizontalAlignment="Center" 
+                                        VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="#1976D2"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter Property="Background" Value="#0D47A1"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    
+    <!-- Success Button Style -->
+    <Style x:Key="SuccessButtonStyle" TargetType="Button" BasedOn="{StaticResource ModernButtonStyle}">
+        <Setter Property="Background" Value="#4CAF50"/>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="#388E3C"/>
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Background" Value="#2E7D32"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+    
+    <!-- Danger Button Style -->
+    <Style x:Key="DangerButtonStyle" TargetType="Button" BasedOn="{StaticResource ModernButtonStyle}">
+        <Setter Property="Background" Value="#F44336"/>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="#D32F2F"/>
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Background" Value="#C62828"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+    
+    <!-- Warning Button Style -->
+    <Style x:Key="WarningButtonStyle" TargetType="Button" BasedOn="{StaticResource ModernButtonStyle}">
+        <Setter Property="Background" Value="#FF9800"/>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="#F57C00"/>
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Background" Value="#EF6C00"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+    
+    <!-- Components Button Style (Green) -->
+    <Style x:Key="ComponentsButtonStyle" TargetType="Button" BasedOn="{StaticResource ModernButtonStyle}">
+        <Setter Property="Background" Value="#4CAF50"/>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="#388E3C"/>
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Background" Value="#2E7D32"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+    
+    <!-- Inventory Button Style (Orange) -->
+    <Style x:Key="InventoryButtonStyle" TargetType="Button" BasedOn="{StaticResource ModernButtonStyle}">
+        <Setter Property="Background" Value="#FF9800"/>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="#F57C00"/>
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Background" Value="#EF6C00"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+    
+    <!-- Transformation Button Style (Indigo) -->
+    <Style x:Key="TransformationButtonStyle" TargetType="Button" BasedOn="{StaticResource ModernButtonStyle}">
+        <Setter Property="Background" Value="#3F51B5"/>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="#303F9F"/>
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Background" Value="#283593"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+    
+    <!-- Categories Button Style (Purple) -->
+    <Style x:Key="CategoriesButtonStyle" TargetType="Button" BasedOn="{StaticResource ModernButtonStyle}">
+        <Setter Property="Background" Value="#9C27B0"/>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="#7B1FA2"/>
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Background" Value="#6A1B9A"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+    
+    <!-- Orders Button Style (Teal) -->
+    <Style x:Key="OrdersButtonStyle" TargetType="Button" BasedOn="{StaticResource ModernButtonStyle}">
+        <Setter Property="Background" Value="#009688"/>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="#00796B"/>
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Background" Value="#00695C"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+    
+    <!-- Customers Button Style (Gray) -->
+    <Style x:Key="CustomersButtonStyle" TargetType="Button" BasedOn="{StaticResource ModernButtonStyle}">
+        <Setter Property="Background" Value="#607D8B"/>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="#455A64"/>
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Background" Value="#37474F"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+    
+    <!-- Employees Button Style (Brown) -->
+    <Style x:Key="EmployeesButtonStyle" TargetType="Button" BasedOn="{StaticResource ModernButtonStyle}">
+        <Setter Property="Background" Value="#795548"/>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="#5D4037"/>
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Background" Value="#4E342E"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+    
+    <!-- Locations Button Style (Pink) -->
+    <Style x:Key="LocationsButtonStyle" TargetType="Button" BasedOn="{StaticResource ModernButtonStyle}">
+        <Setter Property="Background" Value="#E91E63"/>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="#C2185B"/>
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Background" Value="#AD1457"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+    
+    <!-- Reports Button Style (Deep Purple) -->
+    <Style x:Key="ReportsButtonStyle" TargetType="Button" BasedOn="{StaticResource ModernButtonStyle}">
+        <Setter Property="Background" Value="#673AB7"/>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="#5E35B1"/>
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Background" Value="#512DA8"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+    
+    <!-- Modern TextBox Style -->
+    <Style x:Key="ModernTextBoxStyle" TargetType="TextBox">
+        <Setter Property="Padding" Value="8,6"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="BorderBrush" Value="#E0E0E0"/>
+        <Setter Property="Margin" Value="0,2"/>
+        <Setter Property="Background" Value="White"/>
+        <Style.Triggers>
+            <Trigger Property="IsFocused" Value="True">
+                <Setter Property="BorderBrush" Value="#2196F3"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+    
+    <!-- Modern PasswordBox Style -->
+    <Style x:Key="ModernPasswordBoxStyle" TargetType="PasswordBox">
+        <Setter Property="Padding" Value="8,6"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="BorderBrush" Value="#E0E0E0"/>
+        <Setter Property="Margin" Value="0,2"/>
+        <Setter Property="Background" Value="White"/>
+    </Style>
+    
+    <!-- Modern ComboBox Style -->
+    <Style x:Key="ModernComboBoxStyle" TargetType="ComboBox">
+        <Setter Property="Padding" Value="8,6"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="BorderBrush" Value="#E0E0E0"/>
+        <Setter Property="Margin" Value="0,2"/>
+        <Setter Property="Background" Value="White"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="BorderBrush" Value="#2196F3"/>
+            </Trigger>
+            <Trigger Property="IsFocused" Value="True">
+                <Setter Property="BorderBrush" Value="#2196F3"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+    
+</ResourceDictionary> 
