@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using Moonglow_DB.Models;
 using Moonglow_DB.Data;
+using Moonglow_DB.Views.Controls;
 
 namespace Moonglow_DB.Views
 {
@@ -14,6 +15,7 @@ namespace Moonglow_DB.Views
         private List<Component> _allComponents;
         private List<Category> _allCategories;
         private List<ProductComponent> _selectedComponents;
+        private Component _selectedComponent;
         private readonly DatabaseContext _databaseContext;
 
         public EditProductWindow(DatabaseContext databaseContext, Product product)
@@ -31,20 +33,36 @@ namespace Moonglow_DB.Views
         {
             try
             {
-                LoadComponents();
+                InitializeFilteredComboBox();
                 LoadCategories();
                 UpdateComponentList();
             }
             catch (Exception ex)
             {
-                ErrorDialog.ShowError($"Error loading categories: {ex.Message}", "Error");
+                ErrorDialog.ShowError($"Error loading data: {ex.Message}", "Error");
             }
         }
 
-        private void LoadComponents()
+        private void InitializeFilteredComboBox()
         {
-            _allComponents = _databaseContext.GetAllComponents();
-            cmbComponent.ItemsSource = _allComponents;
+            try
+            {
+                // Load all components
+                _allComponents = _databaseContext.GetAllComponents().Where(c => c.IsActive).ToList();
+                
+                // Create filter service
+                var filterService = new ItemFilterService(_databaseContext);
+                
+                // Initialize filtered combo box
+                filteredComponentComboBox.Initialize(filterService, new List<Product>(), _allComponents);
+                
+                // Set to components only (false)
+                filteredComponentComboBox.SetItemType(false);
+            }
+            catch (Exception ex)
+            {
+                ErrorDialog.ShowError($"Error initializing filtered combo box: {ex.Message}", "Error");
+            }
         }
 
         private void LoadCategories()
@@ -106,9 +124,21 @@ namespace Moonglow_DB.Views
             dgComponents.ItemsSource = _selectedComponents;
         }
 
+        private void FilteredComponentComboBox_SelectionChanged(object sender, object selectedItem)
+        {
+            if (selectedItem is ComboBoxDisplayItem displayItem && displayItem.Item is Component component)
+            {
+                _selectedComponent = component;
+            }
+            else
+            {
+                _selectedComponent = null;
+            }
+        }
+
         private void btnAddComponent_Click(object sender, RoutedEventArgs e)
         {
-            if (cmbComponent.SelectedItem == null)
+            if (_selectedComponent == null)
             {
                 ErrorDialog.ShowWarning("Please select a component.", "No Selection");
                 return;
@@ -120,8 +150,7 @@ namespace Moonglow_DB.Views
                 return;
             }
 
-            var selectedComponent = cmbComponent.SelectedItem as Component;
-            var existingComponent = _selectedComponents.FirstOrDefault(c => c.ComponentId == selectedComponent.Id);
+            var existingComponent = _selectedComponents.FirstOrDefault(c => c.ComponentId == _selectedComponent.Id);
 
             if (existingComponent != null)
             {
@@ -131,8 +160,8 @@ namespace Moonglow_DB.Views
 
             var productComponent = new ProductComponent
             {
-                ComponentId = selectedComponent.Id,
-                ComponentName = selectedComponent.Name,
+                ComponentId = _selectedComponent.Id,
+                ComponentName = _selectedComponent.Name,
                 Quantity = quantity
             };
 
@@ -239,8 +268,9 @@ namespace Moonglow_DB.Views
 
         private void ClearComponentForm()
         {
-            cmbComponent.SelectedItem = null;
-            txtComponentQuantity.Text = string.Empty;
+            filteredComponentComboBox.ClearSelection();
+            _selectedComponent = null;
+            txtComponentQuantity.Text = "1";
         }
 
         private void btnCancel_Click(object sender, RoutedEventArgs e)

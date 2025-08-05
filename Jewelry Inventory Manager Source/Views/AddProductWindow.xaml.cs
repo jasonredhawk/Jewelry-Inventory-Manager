@@ -7,6 +7,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using Moonglow_DB.Data;
 using Moonglow_DB.Models;
+using Moonglow_DB.Views.Controls;
 using MySql.Data.MySqlClient;
 
 namespace Moonglow_DB.Views
@@ -16,6 +17,7 @@ namespace Moonglow_DB.Views
         private readonly DatabaseContext _databaseContext;
         private List<Component> _allComponents;
         private List<ProductComponentSelection> _selectedComponents;
+        private Component _selectedComponent;
 
         public AddProductWindow(DatabaseContext databaseContext)
         {
@@ -26,23 +28,32 @@ namespace Moonglow_DB.Views
             // Set default values
             txtPrice.Text = "0.00";
             
-            LoadComponents();
+            InitializeFilteredComboBox();
             LoadCategories();
             
             // Delay UpdateSummary to ensure controls are initialized
             Dispatcher.BeginInvoke(new Action(() => UpdateSummary()));
         }
 
-        private void LoadComponents()
+        private void InitializeFilteredComboBox()
         {
             try
             {
-                _allComponents = GetAllComponents();
-                cmbComponent.ItemsSource = _allComponents;
+                // Load all components
+                _allComponents = GetAllComponents().Where(c => c.IsActive).ToList();
+                
+                // Create filter service
+                var filterService = new ItemFilterService(_databaseContext);
+                
+                // Initialize filtered combo box
+                filteredComponentComboBox.Initialize(filterService, new List<Product>(), _allComponents);
+                
+                // Set to components only (false)
+                filteredComponentComboBox.SetItemType(false);
             }
             catch (Exception ex)
             {
-                ErrorDialog.ShowError($"Error loading components: {ex.Message}", "Error");
+                ErrorDialog.ShowError($"Error initializing filtered combo box: {ex.Message}", "Error");
             }
         }
 
@@ -244,7 +255,7 @@ namespace Moonglow_DB.Views
 
         private void btnAddComponent_Click(object sender, RoutedEventArgs e)
         {
-            if (cmbComponent.SelectedItem == null)
+            if (_selectedComponent == null)
             {
                 ErrorDialog.ShowWarning("Please select a component.", "Validation Error");
                 return;
@@ -256,11 +267,8 @@ namespace Moonglow_DB.Views
                 return;
             }
 
-            var selectedComponent = cmbComponent.SelectedItem as Component;
-            if (selectedComponent == null) return;
-
             // Check if component is already added
-            var existingSelection = _selectedComponents.FirstOrDefault(sc => sc.Component.Id == selectedComponent.Id);
+            var existingSelection = _selectedComponents.FirstOrDefault(sc => sc.Component.Id == _selectedComponent.Id);
             if (existingSelection != null)
             {
                 existingSelection.Quantity += quantity;
@@ -269,7 +277,7 @@ namespace Moonglow_DB.Views
             {
                 _selectedComponents.Add(new ProductComponentSelection
                 {
-                    Component = selectedComponent,
+                    Component = _selectedComponent,
                     Quantity = quantity
                 });
             }
@@ -279,7 +287,8 @@ namespace Moonglow_DB.Views
             UpdateSummary();
 
             // Clear selection
-            cmbComponent.SelectedIndex = -1;
+            filteredComponentComboBox.ClearSelection();
+            _selectedComponent = null;
             txtQuantity.Text = "1";
         }
 
@@ -294,12 +303,16 @@ namespace Moonglow_DB.Views
             }
         }
 
-        private void cmbComponent_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void FilteredComponentComboBox_SelectionChanged(object sender, object selectedItem)
         {
-            // Optional: Update quantity based on available stock
-            if (cmbComponent.SelectedItem is Component component)
+            if (selectedItem is ComboBoxDisplayItem displayItem && displayItem.Item is Component component)
             {
+                _selectedComponent = component;
                 txtQuantity.Text = "1";
+            }
+            else
+            {
+                _selectedComponent = null;
             }
         }
 

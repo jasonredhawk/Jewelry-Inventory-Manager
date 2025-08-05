@@ -32,19 +32,17 @@
 - **Layout**: Integrated into existing form
 - **Special Features**: Multiple component selection points (source, add, result, combine result)
 
-### 6. **AddProductWindow** (Medium Priority)
-- **Current**: Uses ComboBox for component selection
-- **Location**: `Views/AddProductWindow.xaml`
-- **Changes Needed**:
-  - Replace component ComboBox with FilteredComboBox
-  - Set item type to Components only (false)
+### 6. **AddProductWindow** ✅
+- **Status**: Fully implemented with FilteredComboBox
+- **Features**: Search, category filter, location filter, in-stock only
+- **Layout**: Integrated into existing form
+- **Special Features**: Component selection for product creation with automatic quantity reset
 
-### 7. **EditProductWindow** (Medium Priority)
-- **Current**: Uses ComboBox for component selection
-- **Location**: `Moonglow_DB/Views/EditProductWindow.xaml`
-- **Changes Needed**:
-  - Replace component ComboBox with FilteredComboBox
-  - Set item type to Components only (false)
+### 7. **EditProductWindow** ✅
+- **Status**: Fully implemented with FilteredComboBox
+- **Features**: Search, category filter, location filter, in-stock only
+- **Layout**: Integrated into existing form
+- **Special Features**: Component selection for product editing with duplicate prevention
 
 ## 📋 **Implementation Steps for Each Window**
 
