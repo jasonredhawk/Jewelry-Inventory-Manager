@@ -14,6 +14,7 @@ namespace Moonglow_DB.Views.Controls
         private bool _isProductMode = true;
 
         public event EventHandler<object> SelectionChanged;
+        public event EventHandler<int?> LocationFilterChanged;
 
         public FilteredComboBox()
         {
@@ -28,6 +29,7 @@ namespace Moonglow_DB.Views.Controls
             
             itemFilterControl.Initialize(filterService);
             itemFilterControl.FilterChanged += ItemFilterControl_FilterChanged;
+            itemFilterControl.LocationFilterChanged += ItemFilterControl_LocationFilterChanged;
             
             SetItemType(true); // Default to products
         }
@@ -51,6 +53,12 @@ namespace Moonglow_DB.Views.Controls
             {
                 RefreshItems();
             }
+        }
+
+        private void ItemFilterControl_LocationFilterChanged(object sender, int? locationId)
+        {
+            // Forward the location filter change event
+            LocationFilterChanged?.Invoke(this, locationId);
         }
 
         private void RefreshItems()
@@ -159,7 +167,11 @@ namespace Moonglow_DB.Views.Controls
                 itemFilterControl.SetCategoryFilter(criteria.CategoryId);
             
             if (criteria.LocationId.HasValue)
+            {
                 itemFilterControl.SetLocationFilter(criteria.LocationId);
+                // Trigger location filter changed event
+                LocationFilterChanged?.Invoke(this, criteria.LocationId);
+            }
             
             itemFilterControl.SetInStockOnly(criteria.InStockOnly);
         }

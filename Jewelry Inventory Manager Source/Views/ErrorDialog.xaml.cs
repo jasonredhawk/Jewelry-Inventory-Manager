@@ -85,7 +85,6 @@ namespace Moonglow_DB.Views
                     txtTitle.Foreground = new SolidColorBrush(Color.FromRgb(25, 118, 210)); // Blue
                     txtSubtitle.Text = "Please confirm your action.";
                     txtDetailsLabel.Text = "Confirmation Details:";
-                    btnClose.Content = "Cancel";
                     btnCopy.Visibility = Visibility.Collapsed;
                     txtErrorDetails.Background = new SolidColorBrush(Color.FromRgb(232, 240, 254)); // Light blue
                     break;
@@ -152,12 +151,11 @@ namespace Moonglow_DB.Views
             btnCopy.Visibility = Visibility.Collapsed;
             btnYes.Visibility = Visibility.Visible;
             btnNo.Visibility = Visibility.Visible;
-            btnClose.Visibility = Visibility.Visible;
+            btnClose.Visibility = Visibility.Collapsed; // Hide Cancel button for confirmation
             
             // Update button text for confirmation
             btnYes.Content = "Yes";
             btnNo.Content = "No";
-            btnClose.Content = "Cancel";
         }
 
         private void btnYes_Click(object sender, RoutedEventArgs e)

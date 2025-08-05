@@ -52,7 +52,8 @@
                     <StackPanel>
                         <TextBlock Text="Location:" FontWeight="Bold" Margin="0,0,0,10"/>
                         <ComboBox x:Name="cmbLocation" Style="{StaticResource ModernComboBoxStyle}" 
-                                  DisplayMemberPath="Name" SelectedValuePath="Id"/>
+                                  DisplayMemberPath="Name" SelectedValuePath="Id"
+                                  SelectionChanged="cmbLocation_SelectionChanged"/>
                     </StackPanel>
                 </Border>
 

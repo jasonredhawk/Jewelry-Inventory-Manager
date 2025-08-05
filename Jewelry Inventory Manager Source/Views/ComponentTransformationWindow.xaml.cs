@@ -22,6 +22,7 @@ namespace Moonglow_DB.Views
         private Component _selectedAddComponent;
         private Component _selectedResultComponent;
         private Component _selectedCombineResultComponent;
+        private bool _isUpdatingLocationFilters = false; // Prevent infinite loops
 
         public ComponentTransformationWindow(DatabaseContext databaseContext)
         {
@@ -38,6 +39,13 @@ namespace Moonglow_DB.Views
         {
             InitializeFilteredComboBoxes();
             LoadLocations();
+            
+            // Set initial location filter if a location is selected
+            if (cmbLocation.SelectedItem is Location selectedLocation)
+            {
+                UpdateLocationFilters(selectedLocation.Id);
+            }
+            
             UpdateSummary();
         }
 
@@ -62,6 +70,12 @@ namespace Moonglow_DB.Views
                 filteredAddComponentComboBox.SetItemType(false);
                 filteredResultComponentComboBox.SetItemType(false);
                 filteredCombineResultComponentComboBox.SetItemType(false);
+
+                // Subscribe to location filter change events
+                filteredSourceComponentComboBox.LocationFilterChanged += OnFilteredComboBoxLocationChanged;
+                filteredAddComponentComboBox.LocationFilterChanged += OnFilteredComboBoxLocationChanged;
+                filteredResultComponentComboBox.LocationFilterChanged += OnFilteredComboBoxLocationChanged;
+                filteredCombineResultComponentComboBox.LocationFilterChanged += OnFilteredComboBoxLocationChanged;
             }
             catch (Exception ex)
             {
@@ -82,6 +96,113 @@ namespace Moonglow_DB.Views
             {
                 ErrorDialog.ShowError($"Error loading locations: {ex.Message}", "Error");
             }
+        }
+
+        private void cmbLocation_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (cmbLocation.SelectedItem is Location selectedLocation)
+            {
+                // Update all FilteredComboBox controls to filter by the selected location
+                UpdateLocationFilters(selectedLocation.Id, false); // false = don't update main dropdown
+            }
+        }
+
+        private void UpdateLocationFilters(int locationId, bool updateMainDropdown = true)
+        {
+            // Prevent infinite loops
+            if (_isUpdatingLocationFilters)
+                return;
+
+            try
+            {
+                _isUpdatingLocationFilters = true;
+
+                // Create filter criteria with the selected location
+                var locationCriteria = new ItemFilterCriteria
+                {
+                    LocationId = locationId,
+                    InStockOnly = true // Only show items that are in stock at this location
+                };
+
+                // Update all FilteredComboBox controls with the new location filter
+                filteredSourceComponentComboBox.SetFilterCriteria(locationCriteria);
+                filteredAddComponentComboBox.SetFilterCriteria(locationCriteria);
+                filteredResultComponentComboBox.SetFilterCriteria(locationCriteria);
+                filteredCombineResultComponentComboBox.SetFilterCriteria(locationCriteria);
+
+                // Update main location dropdown if requested
+                if (updateMainDropdown)
+                {
+                    // Temporarily remove the event handler to prevent infinite loop
+                    cmbLocation.SelectionChanged -= cmbLocation_SelectionChanged;
+                    
+                    // Find and select the location in the main dropdown
+                    foreach (Location location in cmbLocation.Items)
+                    {
+                        if (location.Id == locationId)
+                        {
+                            cmbLocation.SelectedItem = location;
+                            break;
+                        }
+                    }
+                    
+                    // Re-add the event handler
+                    cmbLocation.SelectionChanged += cmbLocation_SelectionChanged;
+                }
+
+                // Clear any existing selections since the available items have changed
+                ClearAllSelections();
+                
+                UpdateSummary();
+            }
+            catch (Exception ex)
+            {
+                ErrorDialog.ShowError($"Error updating location filters: {ex.Message}", "Error");
+            }
+            finally
+            {
+                _isUpdatingLocationFilters = false;
+            }
+        }
+
+        private void ClearAllSelections()
+        {
+            // Clear selections from all FilteredComboBox controls
+            filteredSourceComponentComboBox.ClearSelection();
+            filteredAddComponentComboBox.ClearSelection();
+            filteredResultComponentComboBox.ClearSelection();
+            filteredCombineResultComponentComboBox.ClearSelection();
+
+            // Clear selected component references
+            _selectedSourceComponent = null;
+            _selectedAddComponent = null;
+            _selectedResultComponent = null;
+            _selectedCombineResultComponent = null;
+        }
+
+        private void OnFilteredComboBoxLocationChanged(object sender, int? locationId)
+        {
+            if (locationId.HasValue)
+            {
+                // Update all other FilteredComboBox controls and main dropdown
+                UpdateLocationFilters(locationId.Value, true);
+            }
+        }
+
+        // Override the window closing to clean up event handlers
+        protected override void OnClosed(EventArgs e)
+        {
+            // Unsubscribe from location filter change events
+            if (filteredSourceComponentComboBox != null)
+                filteredSourceComponentComboBox.LocationFilterChanged -= OnFilteredComboBoxLocationChanged;
+            if (filteredAddComponentComboBox != null)
+                filteredAddComponentComboBox.LocationFilterChanged -= OnFilteredComboBoxLocationChanged;
+            if (filteredResultComponentComboBox != null)
+                filteredResultComponentComboBox.LocationFilterChanged -= OnFilteredComboBoxLocationChanged;
+            if (filteredCombineResultComponentComboBox != null)
+                filteredCombineResultComponentComboBox.LocationFilterChanged -= OnFilteredComboBoxLocationChanged;
+
+            base.OnClosed(e);
         }
 
 

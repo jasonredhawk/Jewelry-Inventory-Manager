@@ -16,5 +16,5 @@ C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manage
 203711339278
 MainWindow.xaml;Moonglow_DB\Views\ConnectionWindow.xaml;Moonglow_DB\Views\EditProductWindow.xaml;Styles\SharedStyles.xaml;Views\AddCategoryWindow.xaml;Views\AddComponentWindow.xaml;Views\AddEmployeeWindow.xaml;Views\AddInventoryTransactionWindow.xaml;Views\AddLocationWindow.xaml;Views\AddOrderWindow.xaml;Views\AddProductWindow.xaml;Views\AddTransactionWindow.xaml;Views\CategoriesWindow.xaml;Views\ComponentsWindow.xaml;Views\ComponentTransformationWindow.xaml;Views\Controls\FilteredComboBox.xaml;Views\Controls\ItemFilterControl.xaml;Views\CustomersWindow.xaml;Views\EditCategoryWindow.xaml;Views\EditComponentWindow.xaml;Views\EditEmployeeWindow.xaml;Views\EditLocationWindow.xaml;Views\EditOrderWindow.xaml;Views\EmployeesWindow.xaml;Views\ErrorDialog.xaml;Views\GeneratePOWindow.xaml;Views\InventoryTransferWindow.xaml;Views\InventoryWindow.xaml;Views\LocationsWindow.xaml;Views\OrdersWindow.xaml;Views\ProductsWindow.xaml;Views\ReportsWindow.xaml;Views\SetMinimumStockWindow.xaml;Views\TransferWindow.xaml;
 
-True
+False
 

@@ -15,6 +15,7 @@ namespace Moonglow_DB.Views.Controls
         private List<Location> _allLocations;
 
         public event EventHandler<ItemFilterCriteria> FilterChanged;
+        public event EventHandler<int?> LocationFilterChanged;
 
         public ItemFilterControl()
         {
@@ -97,6 +98,9 @@ namespace Moonglow_DB.Views.Controls
             {
                 _currentCriteria.LocationId = selectedItem.Tag as int?;
                 OnFilterChanged();
+                
+                // Trigger location filter changed event
+                LocationFilterChanged?.Invoke(this, _currentCriteria.LocationId);
             }
         }
 
