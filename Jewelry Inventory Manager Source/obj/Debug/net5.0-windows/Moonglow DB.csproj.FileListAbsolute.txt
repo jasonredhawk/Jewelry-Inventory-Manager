@@ -105,7 +105,6 @@ C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manage
 C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\bin\Debug\net5.0-windows\Moonglow DB.runtimeconfig.json
 C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\bin\Debug\net5.0-windows\Moonglow DB.runtimeconfig.dev.json
 C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\bin\Debug\net5.0-windows\Moonglow DB.dll
-C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\bin\Debug\net5.0-windows\ref\Moonglow DB.dll
 C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\bin\Debug\net5.0-windows\Moonglow DB.pdb
 C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\bin\Debug\net5.0-windows\CsvHelper.dll
 C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\bin\Debug\net5.0-windows\Google.Protobuf.dll
@@ -202,3 +201,9 @@ C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manage
 C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\ref\Moonglow DB.dll
 C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Moonglow DB.pdb
 C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Moonglow DB.genruntimeconfig.cache
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\Controls\ItemFilterControl.baml
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\Controls\ItemFilterControl.g.cs
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\GeneratedInternalTypeHelper.g.cs
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\Controls\FilteredComboBox.g.cs
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\Controls\FilteredComboBox.baml
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\refint\Moonglow DB.dll

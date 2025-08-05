@@ -7,6 +7,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using Moonglow_DB.Data;
 using Moonglow_DB.Models;
+using Moonglow_DB.Views.Controls;
 
 namespace Moonglow_DB.Views
 {
@@ -25,9 +26,6 @@ namespace Moonglow_DB.Views
             InitializeComponent();
             _databaseContext = databaseContext;
             LoadData();
-            
-            // Trigger initial item loading after window is loaded
-            Loaded += (s, e) => LoadItems();
         }
 
         private void LoadData()
@@ -36,6 +34,7 @@ namespace Moonglow_DB.Views
             {
                 LoadLocations();
                 LoadItemTypes();
+                InitializeFilteredComboBox();
             }
             catch (Exception ex)
             {
@@ -107,85 +106,34 @@ namespace Moonglow_DB.Views
             }
         }
 
-        private void LoadItems()
+        private void InitializeFilteredComboBox()
         {
             try
             {
-                if (_databaseContext == null)
-                {
-                    ErrorDialog.ShowError("Database context is null in SetMinimumStockWindow.LoadItems().", "Error");
-                    return;
-                }
-
-                if (cmbItem == null)
-                {
-                    ErrorDialog.ShowError("Item ComboBox is null in SetMinimumStockWindow.LoadItems().", "Error");
-                    return;
-                }
-
-                cmbItem.Items.Clear();
+                // Load all products and components
+                _allProducts = _databaseContext.GetAllProducts().Where(p => p.IsActive).ToList();
+                _allComponents = _databaseContext.GetAllComponents().Where(c => c.IsActive).ToList();
                 
-                // Use the stored item type or get it from the ComboBox
-                if (string.IsNullOrEmpty(_selectedItemType))
-                {
-                    _selectedItemType = GetSelectedItemType();
-                }
-
-                if (_selectedItemType == "Component")
-                {
-                    try
-                    {
-                        _allComponents = _databaseContext.GetAllComponents().Where(c => c.IsActive).ToList();
-                        foreach (var component in _allComponents)
-                        {
-                            if (component != null)
-                            {
-                                var item = new ComboBoxItem
-                                {
-                                    Content = $"{component.SKU} - {component.Name}",
-                                    Tag = component.Id
-                                };
-                                cmbItem.Items.Add(item);
-                            }
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        ErrorDialog.ShowError($"Error loading components in SetMinimumStockWindow.LoadItems(): {ex.Message}\n\nStack Trace: {ex.StackTrace}", "Error");
-                    }
-                }
-                else
-                {
-                    try
-                    {
-                        _allProducts = _databaseContext.GetAllProducts().Where(p => p.IsActive).ToList();
-                        foreach (var product in _allProducts)
-                        {
-                            if (product != null)
-                            {
-                                var item = new ComboBoxItem
-                                {
-                                    Content = $"{product.SKU} - {product.Name}",
-                                    Tag = product.Id
-                                };
-                                cmbItem.Items.Add(item);
-                            }
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        ErrorDialog.ShowError($"Error loading products in SetMinimumStockWindow.LoadItems(): {ex.Message}\n\nStack Trace: {ex.StackTrace}", "Error");
-                    }
-                }
+                // Create filter service
+                var filterService = new ItemFilterService(_databaseContext);
                 
-                // Clear current info when items are reloaded
-                ClearCurrentInfo();
+                // Initialize the filtered combo box
+                filteredItemComboBox.Initialize(filterService, _allProducts, _allComponents);
+                
+                // Set the initial item type based on the current selection
+                bool isProduct = _selectedItemType == "Product";
+                filteredItemComboBox.SetItemType(isProduct);
+                
+                // Subscribe to selection changed event
+                filteredItemComboBox.SelectionChanged += FilteredItemComboBox_SelectionChanged;
             }
             catch (Exception ex)
             {
-                ErrorDialog.ShowError($"Error in SetMinimumStockWindow.LoadItems(): {ex.Message}\n\nStack Trace: {ex.StackTrace}", "Error");
+                ErrorDialog.ShowError($"Error initializing filtered combo box: {ex.Message}", "Error");
             }
         }
+
+
 
         private string GetSelectedItemType()
         {
@@ -214,9 +162,17 @@ namespace Moonglow_DB.Views
 
         private int GetSelectedItemId()
         {
-            if (cmbItem.SelectedItem is ComboBoxItem selectedItem && selectedItem.Tag != null)
+            try
             {
-                return selectedItem.Tag as int? ?? 0;
+                // Get the selected item ID from the filtered combo box
+                if (filteredItemComboBox.GetSelectedItemId() is int filteredId)
+                {
+                    return filteredId;
+                }
+            }
+            catch
+            {
+                // Return 0 if there's an error
             }
             return 0;
         }
@@ -298,16 +254,29 @@ namespace Moonglow_DB.Views
 
         private void cmbItemType_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            // Update the selected item type
-            _selectedItemType = GetSelectedItemType();
-            // Don't call UpdateCurrentInfo here as it will be called when an item is selected
+            if (cmbItemType.SelectedItem is ComboBoxItem selectedItem)
+            {
+                _selectedItemType = selectedItem.Content.ToString();
+                bool isProduct = _selectedItemType == "Product";
+                
+                // Only set the item type if the filtered combo box has been initialized
+                if (filteredItemComboBox != null)
+                {
+                    filteredItemComboBox.SetItemType(isProduct);
+                }
+            }
         }
 
-        private void cmbItem_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void FilteredItemComboBox_SelectionChanged(object sender, object selectedItem)
         {
-            _selectedItemId = GetSelectedItemId();
-            UpdateCurrentInfo();
+            if (selectedItem is ComboBoxDisplayItem displayItem)
+            {
+                _selectedItemId = displayItem.Id;
+                UpdateCurrentInfo();
+            }
         }
+
+
 
         private void txtNewMinimumStock_PreviewTextInput(object sender, TextCompositionEventArgs e)
         {
