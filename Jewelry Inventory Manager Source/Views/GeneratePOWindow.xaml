@@ -7,7 +7,37 @@
         Background="#F5F5F5">
     
     <Window.Resources>
-        <ResourceDictionary Source="../Styles/SharedStyles.xaml"/>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../Styles/SharedStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+            
+            <!-- Row Style for Generate PO DataGrid -->
+            <Style x:Key="GeneratePORowStyle" TargetType="DataGridRow">
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding StockStatus}" Value="In Stock">
+                        <Setter Property="Background" Value="#E8F5E8"/>
+                        <Setter Property="BorderBrush" Value="#4CAF50"/>
+                        <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding StockStatus}" Value="Low Stock">
+                        <Setter Property="Background" Value="#FFF3E0"/>
+                        <Setter Property="BorderBrush" Value="#FF9800"/>
+                        <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding StockStatus}" Value="Out of Stock">
+                        <Setter Property="Background" Value="#FFEBEE"/>
+                        <Setter Property="BorderBrush" Value="#F44336"/>
+                        <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding StockStatus}" Value="Over Stock">
+                        <Setter Property="Background" Value="#E3F2FD"/>
+                        <Setter Property="BorderBrush" Value="#2196F3"/>
+                        <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </ResourceDictionary>
     </Window.Resources>
     
     <Grid Margin="20">
@@ -129,7 +159,8 @@
                       CanUserAddRows="False"
                       SelectionMode="Extended"
                       SelectionChanged="dgItems_SelectionChanged"
-                      CurrentCellChanged="dgItems_CurrentCellChanged">
+                      CurrentCellChanged="dgItems_CurrentCellChanged"
+                      RowStyle="{StaticResource GeneratePORowStyle}">
                 <DataGrid.Columns>
                     <DataGridCheckBoxColumn x:Name="colSelect" Header="Select" Width="60" Binding="{Binding IsSelected}"/>
                     <DataGridTextColumn Header="SKU" Binding="{Binding SKU}" Width="100"/>
