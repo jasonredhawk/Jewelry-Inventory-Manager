@@ -14,10 +14,9 @@ namespace Moonglow_DB.Views
         private readonly DatabaseContext _databaseContext;
         private List<LocationInventoryItem> _allInventoryItems;
         private List<InventoryTransaction> _allTransactions;
-        private List<InventoryAlert> _allAlerts;
         private List<Location> _allLocations;
+        private List<Category> _allCategories;
         private LocationInventoryItem _selectedInventoryItem;
-        private InventoryAlert _selectedAlert;
 
         public InventoryWindow(DatabaseContext databaseContext)
         {
@@ -25,9 +24,9 @@ namespace Moonglow_DB.Views
             _databaseContext = databaseContext;
             InitializeDatePickers();
             LoadLocations();
+            LoadCategories();
             LoadInventoryData();
             LoadTransactions();
-            LoadAlerts();
         }
 
         private void InitializeDatePickers()
@@ -62,6 +61,27 @@ namespace Moonglow_DB.Views
             return _databaseContext.GetAllLocations();
         }
 
+        private void LoadCategories()
+        {
+            try
+            {
+                _allCategories = _databaseContext.GetAllCategories();
+                
+                // Populate category filter dropdown
+                cmbCategoryFilter.Items.Clear();
+                cmbCategoryFilter.Items.Add(new ComboBoxItem { Content = "All Categories", IsSelected = true });
+                
+                foreach (var category in _allCategories.Where(c => c.IsActive))
+                {
+                    cmbCategoryFilter.Items.Add(new ComboBoxItem { Content = category.Name, Tag = category.Id });
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrorDialog.ShowError($"Error loading categories:\n\n{ex.Message}\n\nStack Trace:\n{ex.StackTrace}", "Category Error");
+            }
+        }
+
         #region Stock Overview Tab
 
         private void LoadInventoryData()
@@ -69,8 +89,15 @@ namespace Moonglow_DB.Views
             try
             {
                 _allInventoryItems = GetAllInventoryItems();
+                
+                // Ensure all items have their stock status calculated
+                foreach (var item in _allInventoryItems)
+                {
+                    item.UpdateStockStatus();
+                }
+                
                 dgInventory.ItemsSource = _allInventoryItems;
-                UpdateSummaryCards();
+                UpdateSummaryCardsFromFilteredData(_allInventoryItems);
             }
             catch (Exception ex)
             {
@@ -105,8 +132,9 @@ namespace Moonglow_DB.Views
                 {
                     var productStock = _databaseContext.GetProductStock(product.Id, location.Id);
                     var minStock = _databaseContext.GetMinimumStock("Product", product.Id, location.Id);
+                    var fullStock = _databaseContext.GetFullStock("Product", product.Id, location.Id);
                     
-                    items.Add(new LocationInventoryItem
+                    var item = new LocationInventoryItem
                     {
                         Id = product.Id,
                         SKU = product.SKU,
@@ -116,12 +144,18 @@ namespace Moonglow_DB.Views
                         LocationId = location.Id,
                         LocationName = location.Name,
                         Price = product.Price,
-                        CurrentStock = productStock,
                         TotalStockAcrossLocations = totalStock,
-                        MinimumStock = minStock,
                         IsActive = product.IsActive,
-                        LastModified = product.LastModified
-                    });
+                        LastModified = product.LastModified,
+                        CategoryId = product.CategoryId
+                    };
+                    
+                    // Set stock-related properties in the correct order to avoid multiple recalculations
+                    item.MinimumStock = minStock;
+                    item.FullStock = fullStock;
+                    item.CurrentStock = productStock; // This will trigger the final UpdateStockStatus()
+                    
+                    items.Add(item);
                 }
             }
             
@@ -147,8 +181,9 @@ namespace Moonglow_DB.Views
                 {
                     var componentStock = _databaseContext.GetComponentStock(component.Id, location.Id);
                     var minStock = _databaseContext.GetMinimumStock("Component", component.Id, location.Id);
+                    var fullStock = _databaseContext.GetFullStock("Component", component.Id, location.Id);
                     
-                    items.Add(new LocationInventoryItem
+                    var item = new LocationInventoryItem
                     {
                         Id = component.Id,
                         SKU = component.SKU,
@@ -158,12 +193,18 @@ namespace Moonglow_DB.Views
                         LocationId = location.Id,
                         LocationName = location.Name,
                         Cost = component.Cost,
-                        CurrentStock = componentStock,
                         TotalStockAcrossLocations = totalStock,
-                        MinimumStock = minStock,
                         IsActive = component.IsActive,
-                        LastModified = component.LastModified
-                    });
+                        LastModified = component.LastModified,
+                        CategoryId = component.CategoryId
+                    };
+                    
+                    // Set stock-related properties in the correct order to avoid multiple recalculations
+                    item.MinimumStock = minStock;
+                    item.FullStock = fullStock;
+                    item.CurrentStock = componentStock; // This will trigger the final UpdateStockStatus()
+                    
+                    items.Add(item);
                 }
             }
             
@@ -174,18 +215,54 @@ namespace Moonglow_DB.Views
         {
             if (_allInventoryItems == null) return;
 
-            // Get unique items (by ID) for summary calculations
+            // Count unique items (by ID) for Products and Components
             var uniqueItems = _allInventoryItems.GroupBy(x => x.Id).Select(g => g.First()).ToList();
-            
             var totalProducts = uniqueItems.Count(x => x.ItemType == "Product");
             var totalComponents = uniqueItems.Count(x => x.ItemType == "Component");
-            var lowStockItems = uniqueItems.Count(x => x.StockStatus == "Low Stock");
-            var outOfStockItems = uniqueItems.Count(x => x.StockStatus == "Out of Stock");
+            
+            // Count actual items for stock status (including duplicates from multiple locations)
+            var inStockItems = _allInventoryItems.Count(x => x.StockStatus == "In Stock");
+            var lowStockItems = _allInventoryItems.Count(x => x.StockStatus == "Low Stock");
+            var outOfStockItems = _allInventoryItems.Count(x => x.StockStatus == "Out of Stock");
+            var overStockItems = _allInventoryItems.Count(x => x.StockStatus == "Over Stock");
 
             txtTotalProducts.Text = totalProducts.ToString();
             txtTotalComponents.Text = totalComponents.ToString();
+            txtInStockItems.Text = inStockItems.ToString();
             txtLowStockItems.Text = lowStockItems.ToString();
             txtOutOfStock.Text = outOfStockItems.ToString();
+            txtOverStockItems.Text = overStockItems.ToString();
+        }
+
+        private void UpdateSummaryCardsFromFilteredData(List<LocationInventoryItem> filteredItems)
+        {
+            if (filteredItems == null) return;
+
+            // Count unique items (by SKU) for Products and Components
+            var uniqueItems = filteredItems.GroupBy(x => x.SKU).Select(g => g.First()).ToList();
+            var totalProducts = uniqueItems.Count(x => x.ItemType == "Product");
+            var totalComponents = uniqueItems.Count(x => x.ItemType == "Component");
+            
+            // Debug: Show component counting details
+            System.Diagnostics.Debug.WriteLine($"=== Summary Cards Debug ===");
+            System.Diagnostics.Debug.WriteLine($"Total filtered items: {filteredItems.Count}");
+            System.Diagnostics.Debug.WriteLine($"Unique items by SKU: {uniqueItems.Count}");
+            System.Diagnostics.Debug.WriteLine($"Components in filtered items: {filteredItems.Count(x => x.ItemType == "Component")}");
+            System.Diagnostics.Debug.WriteLine($"Unique components by SKU: {totalComponents}");
+            System.Diagnostics.Debug.WriteLine($"Components by SKU: {string.Join(", ", filteredItems.Where(x => x.ItemType == "Component").Select(x => $"{x.Name}(SKU:{x.SKU})"))}");
+            
+            // Count actual items for stock status (including duplicates from multiple locations)
+            var inStockItems = filteredItems.Count(x => x.StockStatus == "In Stock");
+            var lowStockItems = filteredItems.Count(x => x.StockStatus == "Low Stock");
+            var outOfStockItems = filteredItems.Count(x => x.StockStatus == "Out of Stock");
+            var overStockItems = filteredItems.Count(x => x.StockStatus == "Over Stock");
+
+            txtTotalProducts.Text = totalProducts.ToString();
+            txtTotalComponents.Text = totalComponents.ToString();
+            txtInStockItems.Text = inStockItems.ToString();
+            txtLowStockItems.Text = lowStockItems.ToString();
+            txtOutOfStock.Text = outOfStockItems.ToString();
+            txtOverStockItems.Text = overStockItems.ToString();
         }
 
         private void btnRefresh_Click(object sender, RoutedEventArgs e)
@@ -289,6 +366,16 @@ namespace Moonglow_DB.Views
             ApplyInventoryFilter();
         }
 
+        private void cmbCategoryFilter_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            ApplyInventoryFilter();
+        }
+
+        private void cmbItemTypeFilter_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            ApplyInventoryFilter();
+        }
+
         private void ApplyInventoryFilter()
         {
             if (_allInventoryItems == null) return;
@@ -297,19 +384,13 @@ namespace Moonglow_DB.Views
             var filterText = (cmbFilter.SelectedItem as ComboBoxItem)?.Content.ToString();
             var locationFilter = (cmbLocationFilter.SelectedItem as ComboBoxItem)?.Content.ToString();
             var selectedLocationId = (cmbLocationFilter.SelectedItem as ComboBoxItem)?.Tag as int?;
+            var categoryFilter = (cmbCategoryFilter.SelectedItem as ComboBoxItem)?.Content.ToString();
+            var selectedCategoryId = (cmbCategoryFilter.SelectedItem as ComboBoxItem)?.Tag as int?;
+            var itemTypeFilter = (cmbItemTypeFilter.SelectedItem as ComboBoxItem)?.Content.ToString();
 
-            // Show/hide location-specific columns based on filter
-            if (locationFilter == "All Locations" || locationFilter == null)
-            {
-                colLocation.Visibility = Visibility.Collapsed;
-                dgInventory.Columns[4].Visibility = Visibility.Collapsed; // Location Stock column
-            }
-            else
-            {
-                colLocation.Visibility = Visibility.Visible;
-                dgInventory.Columns[4].Visibility = Visibility.Visible; // Location Stock column
-            }
-
+            // Debug: Check what filter is selected
+            System.Diagnostics.Debug.WriteLine($"Selected filter: '{filterText}'");
+            
             var filteredItems = _allInventoryItems.Where(item =>
             {
                 // Search filter
@@ -318,13 +399,13 @@ namespace Moonglow_DB.Views
                                   item.SKU.ToLower().Contains(searchText) ||
                                   item.Description.ToLower().Contains(searchText);
 
-                // Type filter
-                var matchesFilter = filterText switch
+                // Stock Levels filter
+                var matchesStockFilter = filterText switch
                 {
+                    "In Stock" => item.StockStatus == "In Stock",
                     "Low Stock" => item.StockStatus == "Low Stock",
                     "Out of Stock" => item.StockStatus == "Out of Stock",
-                    "Products Only" => item.ItemType == "Product",
-                    "Components Only" => item.ItemType == "Component",
+                    "Over Stock" => item.StockStatus == "Over Stock",
                     _ => true // "All Items"
                 };
 
@@ -332,10 +413,32 @@ namespace Moonglow_DB.Views
                 var matchesLocation = locationFilter == "All Locations" || locationFilter == null || 
                                     (selectedLocationId.HasValue && item.LocationId == selectedLocationId.Value);
 
-                return matchesSearch && matchesFilter && matchesLocation;
-            }).ToList();
+                // Category filter
+                var matchesCategory = categoryFilter == "All Categories" || categoryFilter == null ||
+                                    (selectedCategoryId.HasValue && item.CategoryId == selectedCategoryId.Value);
 
+                // Item Type filter
+                var matchesItemType = itemTypeFilter switch
+                {
+                    "Products" => item.ItemType == "Product",
+                    "Components" => item.ItemType == "Component",
+                    _ => true // "All Types"
+                };
+
+                // Debug: Show all items with their status when filtering for stock levels
+                if (filterText == "In Stock" || filterText == "Low Stock" || filterText == "Out of Stock" || filterText == "Over Stock")
+                {
+                    System.Diagnostics.Debug.WriteLine($"Item: {item.Name}, Status: '{item.StockStatus}', CurrentStock: {item.CurrentStock}, MinStock: {item.MinimumStock}, FullStock: {item.FullStock}, MatchesStockFilter: {matchesStockFilter}");
+                }
+
+                return matchesSearch && matchesStockFilter && matchesLocation && matchesCategory && matchesItemType;
+            }).ToList();
+            
+            System.Diagnostics.Debug.WriteLine($"Total items: {_allInventoryItems.Count}, Filtered items: {filteredItems.Count}");
             dgInventory.ItemsSource = filteredItems;
+            
+            // Update summary cards based on filtered data
+            UpdateSummaryCardsFromFilteredData(filteredItems);
         }
 
         private void dgInventory_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -453,119 +556,6 @@ namespace Moonglow_DB.Views
                 t.TransactionDate.Date <= endDate.Date).ToList();
 
             dgTransactions.ItemsSource = filteredTransactions;
-        }
-
-        #endregion
-
-        #region Alerts Tab
-
-        private void LoadAlerts()
-        {
-            try
-            {
-                _allAlerts = GetAllAlerts();
-                dgAlerts.ItemsSource = _allAlerts;
-            }
-            catch (Exception ex)
-            {
-                ErrorDialog.ShowError($"Error loading alerts:\n\n{ex.Message}\n\nStack Trace:\n{ex.StackTrace}", "Alert Error");
-            }
-        }
-
-        private List<InventoryAlert> GetAllAlerts()
-        {
-            var alerts = new List<InventoryAlert>();
-            
-            // Generate alerts based on current inventory status
-            if (_allInventoryItems != null)
-            {
-                foreach (var item in _allInventoryItems)
-                {
-                    if (item.CurrentStock <= 0)
-                    {
-                        alerts.Add(new InventoryAlert
-                        {
-                            AlertDate = DateTime.Now,
-                            AlertType = "Out of Stock",
-                            ItemName = item.Name,
-                            LocationName = item.LocationName,
-                            CurrentStock = item.CurrentStock,
-                            MinimumStock = item.MinimumStock,
-                            Message = $"{item.ItemType} '{item.Name}' is out of stock at {item.LocationName}"
-                        });
-                    }
-                    else if (item.CurrentStock <= item.MinimumStock)
-                    {
-                        alerts.Add(new InventoryAlert
-                        {
-                            AlertDate = DateTime.Now,
-                            AlertType = "Low Stock",
-                            ItemName = item.Name,
-                            LocationName = item.LocationName,
-                            CurrentStock = item.CurrentStock,
-                            MinimumStock = item.MinimumStock,
-                            Message = $"{item.ItemType} '{item.Name}' is running low on stock at {item.LocationName}"
-                        });
-                    }
-                }
-            }
-            
-            return alerts;
-        }
-
-        private void btnRefreshAlerts_Click(object sender, RoutedEventArgs e)
-        {
-            LoadAlerts();
-        }
-
-        private void btnDismissAlert_Click(object sender, RoutedEventArgs e)
-        {
-            if (_selectedAlert != null)
-            {
-                var result = ErrorDialog.ShowConfirmation("Are you sure you want to dismiss this alert?", "Confirm Dismiss");
-                
-                if (result)
-                {
-                    _allAlerts.Remove(_selectedAlert);
-                    dgAlerts.ItemsSource = null;
-                    dgAlerts.ItemsSource = _allAlerts;
-                    _selectedAlert = null;
-                }
-            }
-            else
-            {
-                ErrorDialog.ShowWarning("Please select an alert to dismiss.", "No Selection");
-            }
-        }
-
-        private void cmbAlertType_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            ApplyAlertFilter();
-        }
-
-        private void ApplyAlertFilter()
-        {
-            if (_allAlerts == null) return;
-
-            var filterText = (cmbAlertType.SelectedItem as ComboBoxItem)?.Content.ToString();
-
-            var filteredAlerts = _allAlerts.Where(alert =>
-            {
-                return filterText switch
-                {
-                    "Low Stock" => alert.AlertType == "Low Stock",
-                    "Out of Stock" => alert.AlertType == "Out of Stock",
-                    "Expiring Soon" => alert.AlertType == "Expiring Soon",
-                    _ => true // "All Alerts"
-                };
-            }).ToList();
-
-            dgAlerts.ItemsSource = filteredAlerts;
-        }
-
-        private void dgAlerts_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            _selectedAlert = dgAlerts.SelectedItem as InventoryAlert;
         }
 
         #endregion

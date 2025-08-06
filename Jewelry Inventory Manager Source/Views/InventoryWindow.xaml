@@ -1,15 +1,41 @@
 <Window x:Class="Moonglow_DB.Views.InventoryWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Inventory Tracking" Height="700" Width="1000"
+        Title="Inventory Tracking" Height="900" Width="1400"
         WindowStartupLocation="CenterScreen"
         Background="#F5F5F5">
-    
+
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="../Styles/SharedStyles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
+
+            <!-- Row Style for Inventory DataGrid -->
+            <Style x:Key="InventoryRowStyle" TargetType="DataGridRow">
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding StockStatus}" Value="In Stock">
+                        <Setter Property="Background" Value="#E8F5E8"/>
+                        <Setter Property="BorderBrush" Value="#4CAF50"/>
+                        <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding StockStatus}" Value="Low Stock">
+                        <Setter Property="Background" Value="#FFF3E0"/>
+                        <Setter Property="BorderBrush" Value="#FF9800"/>
+                        <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding StockStatus}" Value="Out of Stock">
+                        <Setter Property="Background" Value="#FFEBEE"/>
+                        <Setter Property="BorderBrush" Value="#F44336"/>
+                        <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding StockStatus}" Value="Over Stock">
+                        <Setter Property="Background" Value="#E3F2FD"/>
+                        <Setter Property="BorderBrush" Value="#2196F3"/>
+                        <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
         </ResourceDictionary>
     </Window.Resources>
 
@@ -33,7 +59,7 @@
 
         <!-- Main Content -->
         <TabControl Grid.Row="1" Margin="15">
-            
+
             <!-- Stock Overview Tab -->
             <TabItem Header="📋 Stock Overview">
                 <Grid Margin="10">
@@ -45,7 +71,8 @@
                     </Grid.RowDefinitions>
 
                     <!-- Summary Cards -->
-                    <UniformGrid Grid.Row="0" Columns="4" Margin="0,0,0,20">
+                    <UniformGrid Grid.Row="0" Columns="3" Margin="0,0,0,20">
+                        <!-- Row 1 -->
                         <Border Background="White" CornerRadius="8" Padding="15" Margin="5" BorderBrush="#E0E0E0" BorderThickness="1">
                             <StackPanel>
                                 <TextBlock Text="Total Products" FontSize="12" Foreground="#666"/>
@@ -62,15 +89,30 @@
                         
                         <Border Background="White" CornerRadius="8" Padding="15" Margin="5" BorderBrush="#E0E0E0" BorderThickness="1">
                             <StackPanel>
+                                <TextBlock Text="In Stock Items" FontSize="12" Foreground="#666"/>
+                                <TextBlock x:Name="txtInStockItems" Text="0" FontSize="24" FontWeight="Bold" Foreground="#4CAF50"/>
+                            </StackPanel>
+                        </Border>
+                        
+                        <!-- Row 2 -->
+                        <Border Background="White" CornerRadius="8" Padding="15" Margin="5" BorderBrush="#E0E0E0" BorderThickness="1">
+                            <StackPanel>
                                 <TextBlock Text="Low Stock Items" FontSize="12" Foreground="#666"/>
-                                <TextBlock x:Name="txtLowStockItems" Text="0" FontSize="24" FontWeight="Bold" Foreground="#F44336"/>
+                                <TextBlock x:Name="txtLowStockItems" Text="0" FontSize="24" FontWeight="Bold" Foreground="#FF9800"/>
                             </StackPanel>
                         </Border>
                         
                         <Border Background="White" CornerRadius="8" Padding="15" Margin="5" BorderBrush="#E0E0E0" BorderThickness="1">
                             <StackPanel>
                                 <TextBlock Text="Out of Stock" FontSize="12" Foreground="#666"/>
-                                <TextBlock x:Name="txtOutOfStock" Text="0" FontSize="24" FontWeight="Bold" Foreground="#FF9800"/>
+                                <TextBlock x:Name="txtOutOfStock" Text="0" FontSize="24" FontWeight="Bold" Foreground="#F44336"/>
+                            </StackPanel>
+                        </Border>
+                        
+                        <Border Background="White" CornerRadius="8" Padding="15" Margin="5" BorderBrush="#E0E0E0" BorderThickness="1">
+                            <StackPanel>
+                                <TextBlock Text="Over Stock Items" FontSize="12" Foreground="#666"/>
+                                <TextBlock x:Name="txtOverStockItems" Text="0" FontSize="24" FontWeight="Bold" Foreground="#2196F3"/>
                             </StackPanel>
                         </Border>
                     </UniformGrid>
@@ -100,54 +142,66 @@
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
-                            
+
                             <!-- Action Buttons Row -->
                             <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
                                 <Button x:Name="btnRefresh" 
                                         Content="🔄 Refresh" 
                                         Style="{StaticResource ModernButtonStyle}"
                                         Click="btnRefresh_Click"/>
-                                
+
                                 <Button x:Name="btnAddTransaction" 
                                         Content="➕ Add Transaction" 
                                         Style="{StaticResource SuccessButtonStyle}"
                                         Click="btnAddTransaction_Click"/>
-                                
+
                                 <Button x:Name="btnTransfer" 
                                         Content="🚚 Bulk Transfer" 
                                         Style="{StaticResource WarningButtonStyle}"
                                         Click="btnTransfer_Click"/>
-                                
+
                                 <Button x:Name="btnGeneratePO" 
                                         Content="📋 Generate PO" 
                                         Style="{StaticResource ModernButtonStyle}"
                                         Click="btnGeneratePO_Click"/>
-                             
+
                                 <Button x:Name="btnSetStockLevels" 
                                         Content="📊 Set Stock Levels" 
                                         Style="{StaticResource ModernButtonStyle}"
                                         Click="btnSetStockLevels_Click"/>
                             </StackPanel>
-                            
+
                             <!-- Filters Row -->
                             <StackPanel Grid.Row="1" Orientation="Horizontal">
-                                <TextBlock Text="Location:" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                <ComboBox x:Name="cmbLocationFilter" Width="150" Margin="0,0,15,0" SelectionChanged="cmbLocationFilter_SelectionChanged">
-                                    <ComboBoxItem Content="All Locations" IsSelected="True"/>
-                                </ComboBox>
-                                
-                                <TextBlock Text="Filter:" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                <ComboBox x:Name="cmbFilter" Width="150" Margin="0,0,15,0" SelectionChanged="cmbFilter_SelectionChanged">
+                                <TextBlock Text="Stock Levels:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <ComboBox x:Name="cmbFilter" Width="120" Height="28" Margin="0,0,15,0" SelectionChanged="cmbFilter_SelectionChanged">
                                     <ComboBoxItem Content="All Items" IsSelected="True"/>
+                                    <ComboBoxItem Content="In Stock"/>
                                     <ComboBoxItem Content="Low Stock"/>
                                     <ComboBoxItem Content="Out of Stock"/>
-                                    <ComboBoxItem Content="Products Only"/>
-                                    <ComboBoxItem Content="Components Only"/>
+                                    <ComboBoxItem Content="Over Stock"/>
                                 </ComboBox>
-                                
+
+                                <TextBlock Text="Location:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <ComboBox x:Name="cmbLocationFilter" Width="120" Height="28" Margin="0,0,15,0" SelectionChanged="cmbLocationFilter_SelectionChanged">
+                                    <ComboBoxItem Content="All Locations" IsSelected="True"/>
+                                </ComboBox>
+
+                                <TextBlock Text="Category:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <ComboBox x:Name="cmbCategoryFilter" Width="120" Height="28" Margin="0,0,15,0" SelectionChanged="cmbCategoryFilter_SelectionChanged">
+                                    <ComboBoxItem Content="All Categories" IsSelected="True"/>
+                                </ComboBox>
+
+                                <TextBlock Text="Item Type:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <ComboBox x:Name="cmbItemTypeFilter" Width="120" Height="28" Margin="0,0,15,0" SelectionChanged="cmbItemTypeFilter_SelectionChanged">
+                                    <ComboBoxItem Content="All Types" IsSelected="True"/>
+                                    <ComboBoxItem Content="Products"/>
+                                    <ComboBoxItem Content="Components"/>
+                                </ComboBox>
+
                                 <TextBlock Text="Search:" VerticalAlignment="Center" Margin="0,0,10,0"/>
                                 <TextBox x:Name="txtSearch" 
-                                         Width="200" 
+                                         Width="150" Height="28"
                                          Style="{StaticResource ModernTextBoxStyle}"
                                          TextChanged="txtSearch_TextChanged"
                                          VerticalAlignment="Center"/>
@@ -167,18 +221,20 @@
                               Background="White"
                               BorderBrush="#E0E0E0"
                               GridLinesVisibility="Horizontal"
-                              HeadersVisibility="Column">
-                        
+                              HeadersVisibility="Column"
+                              RowStyle="{StaticResource InventoryRowStyle}">
+
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Type" Binding="{Binding ItemType}" Width="80"/>
-                            <DataGridTextColumn Header="SKU" Binding="{Binding SKU}" Width="120"/>
-                            <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="200"/>
-                            <DataGridTextColumn x:Name="colLocation" Header="Location" Binding="{Binding LocationName}" Width="120" Visibility="Collapsed"/>
-                            <DataGridTextColumn Header="Location Stock" Binding="{Binding CurrentStock}" Width="100" Visibility="Collapsed"/>
-                            <DataGridTextColumn Header="Total Stock" Binding="{Binding TotalStockAcrossLocations}" Width="100"/>
-                            <DataGridTextColumn Header="Min Stock" Binding="{Binding MinimumStock}" Width="100"/>
-                            <DataGridTextColumn Header="Status" Binding="{Binding StockStatus}" Width="100"/>
-                            <DataGridTextColumn Header="Last Updated" Binding="{Binding LastModified, StringFormat=MM/dd/yyyy}" Width="120"/>
+                            <DataGridTextColumn Header="SKU" Binding="{Binding SKU}" Width="140"/>
+                            <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="250"/>
+                            <DataGridTextColumn Header="Location" Binding="{Binding LocationName}" Width="140"/>
+                            <DataGridTextColumn Header="Location Stock" Binding="{Binding CurrentStock}" Width="110"/>
+                            <DataGridTextColumn Header="Total Stock" Binding="{Binding TotalStockAcrossLocations}" Width="110"/>
+                            <DataGridTextColumn Header="Full Stock" Binding="{Binding FullStock}" Width="110"/>
+                            <DataGridTextColumn Header="Min Stock" Binding="{Binding MinimumStock}" Width="110"/>
+                            <DataGridTextColumn Header="Status" Binding="{Binding StockStatus}" Width="110"/>
+                            <DataGridTextColumn Header="Last Updated" Binding="{Binding LastModified, StringFormat=MM/dd/yyyy}" Width="130"/>
                         </DataGrid.Columns>
                     </DataGrid>
                 </Grid>
@@ -201,14 +257,14 @@
                                     Content="🔄 Refresh" 
                                     Style="{StaticResource ModernButtonStyle}"
                                     Click="btnRefreshTransactions_Click"/>
-                            
+
                             <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="20,0"/>
-                            
+
                             <TextBlock Text="Date Range:" VerticalAlignment="Center" Margin="0,0,10,0"/>
                             <DatePicker x:Name="dpStartDate" Width="120" Margin="0,0,10,0"/>
                             <TextBlock Text="to" VerticalAlignment="Center" Margin="0,0,10,0"/>
                             <DatePicker x:Name="dpEndDate" Width="120" Margin="0,0,20,0"/>
-                            
+
                             <Button x:Name="btnFilterTransactions" 
                                     Content="🔍 Filter" 
                                     Style="{StaticResource ModernButtonStyle}"
@@ -228,7 +284,7 @@
                               BorderBrush="#E0E0E0"
                               GridLinesVisibility="Horizontal"
                               HeadersVisibility="Column">
-                        
+
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Date" Binding="{Binding TransactionDate, StringFormat=MM/dd/yyyy HH:mm}" Width="120"/>
                             <DataGridTextColumn Header="Type" Binding="{Binding TransactionType}" Width="100"/>
@@ -241,65 +297,7 @@
                 </Grid>
             </TabItem>
 
-            <!-- Alerts Tab -->
-            <TabItem Header="⚠️ Alerts">
-                <Grid Margin="10">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
 
-                    <!-- Alerts Toolbar -->
-                    <Border Grid.Row="0" Background="White" Padding="15" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1">
-                        <StackPanel Orientation="Horizontal">
-                            <Button x:Name="btnRefreshAlerts" 
-                                    Content="🔄 Refresh" 
-                                    Style="{StaticResource ModernButtonStyle}"
-                                    Click="btnRefreshAlerts_Click"/>
-                            
-                            <Button x:Name="btnDismissAlert" 
-                                    Content="✅ Dismiss" 
-                                    Style="{StaticResource SuccessButtonStyle}"
-                                    Click="btnDismissAlert_Click"/>
-                            
-                            <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="20,0"/>
-                            
-                            <TextBlock Text="Alert Type:" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                            <ComboBox x:Name="cmbAlertType" Width="150" SelectionChanged="cmbAlertType_SelectionChanged">
-                                <ComboBoxItem Content="All Alerts" IsSelected="True"/>
-                                <ComboBoxItem Content="Low Stock"/>
-                                <ComboBoxItem Content="Out of Stock"/>
-                                <ComboBoxItem Content="Expiring Soon"/>
-                            </ComboBox>
-                        </StackPanel>
-                    </Border>
-
-                    <!-- Alerts DataGrid -->
-                    <DataGrid x:Name="dgAlerts" 
-                              Grid.Row="1" 
-                              Margin="0,15,0,0"
-                              AutoGenerateColumns="False"
-                              CanUserAddRows="False"
-                              CanUserDeleteRows="False"
-                              SelectionMode="Single"
-                              SelectionChanged="dgAlerts_SelectionChanged"
-                              Background="White"
-                              BorderBrush="#E0E0E0"
-                              GridLinesVisibility="Horizontal"
-                              HeadersVisibility="Column">
-                        
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="Date" Binding="{Binding AlertDate, StringFormat=MM/dd/yyyy}" Width="100"/>
-                            <DataGridTextColumn Header="Type" Binding="{Binding AlertType}" Width="100"/>
-                            <DataGridTextColumn Header="Item" Binding="{Binding ItemName}" Width="200"/>
-                            <DataGridTextColumn Header="Location" Binding="{Binding LocationName}" Width="120"/>
-                            <DataGridTextColumn Header="Current Stock" Binding="{Binding CurrentStock}" Width="100"/>
-                            <DataGridTextColumn Header="Min Stock" Binding="{Binding MinimumStock}" Width="100"/>
-                            <DataGridTextColumn Header="Message" Binding="{Binding Message}" Width="300"/>
-                        </DataGrid.Columns>
-                    </DataGrid>
-                </Grid>
-            </TabItem>
 
         </TabControl>
     </Grid>

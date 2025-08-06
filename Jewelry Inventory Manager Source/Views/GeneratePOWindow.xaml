@@ -1,8 +1,9 @@
 <Window x:Class="Moonglow_DB.Views.GeneratePOWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Generate Purchase Order" Height="600" Width="800"
+        Title="Generate Purchase Order" Height="900" Width="1200"
         WindowStartupLocation="CenterOwner"
+        MinHeight="900" MinWidth="1200"
         Background="#F5F5F5">
     
     <Window.Resources>
@@ -95,30 +96,30 @@
             
             <!-- Filter Controls -->
             <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
-                <TextBlock Text="Filter:" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                <ComboBox x:Name="cmbFilter" Width="150" Margin="0,0,10,0"
+                <TextBlock Text="Filter:" VerticalAlignment="Center" Margin="0,0,8,0" FontWeight="SemiBold"/>
+                <ComboBox x:Name="cmbFilter" Width="120" Height="28" Margin="0,0,15,0"
                           SelectionChanged="cmbFilter_SelectionChanged">
+                    <ComboBoxItem Content="Low &amp; Out of Stock" IsSelected="True"/>
                     <ComboBoxItem Content="All Items"/>
-                    <ComboBoxItem Content="Low &amp; Out of Stock"/>
                     <ComboBoxItem Content="Low Stock Only"/>
                     <ComboBoxItem Content="Out of Stock Only"/>
                     <ComboBoxItem Content="Products Only"/>
                     <ComboBoxItem Content="Components Only"/>
                 </ComboBox>
                 
-                <TextBlock Text="Location:" VerticalAlignment="Center" Margin="20,0,10,0"/>
-                <ComboBox x:Name="cmbLocationFilter" Width="150" Margin="0,0,10,0"
+                <TextBlock Text="Location:" VerticalAlignment="Center" Margin="0,0,8,0" FontWeight="SemiBold"/>
+                <ComboBox x:Name="cmbLocationFilter" Width="120" Height="28" Margin="0,0,15,0"
                           SelectionChanged="cmbLocationFilter_SelectionChanged">
-                    <ComboBoxItem Content="All Locations"/>
+                    <ComboBoxItem Content="All Locations" IsSelected="True"/>
                 </ComboBox>
                 
-                <TextBlock Text="Search:" VerticalAlignment="Center" Margin="20,0,10,0"/>
-                <TextBox x:Name="txtSearch" Width="200" Margin="0,0,10,0"
-                         TextChanged="txtSearch_TextChanged"/>
+                <TextBlock Text="Search:" VerticalAlignment="Center" Margin="0,0,8,0" FontWeight="SemiBold"/>
+                <TextBox x:Name="txtSearch" Width="150" Height="28" Margin="0,0,15,0"
+                         TextChanged="txtSearch_TextChanged" Style="{StaticResource ModernTextBoxStyle}"/>
                 
                 <Button x:Name="btnRefresh" Content="Refresh" 
                         Style="{StaticResource ModernButtonStyle}"
-                        Width="80" Height="30"
+                        Width="80" Height="28"
                         Click="btnRefresh_Click"/>
             </StackPanel>
             

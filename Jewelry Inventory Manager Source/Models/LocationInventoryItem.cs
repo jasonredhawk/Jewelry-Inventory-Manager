@@ -20,6 +20,8 @@ namespace Moonglow_DB.Models
         private DateTime _lastModified;
         private string _stockStatus;
         private int _totalStockAcrossLocations;
+        private int? _categoryId;
+        private int _fullStock;
 
         public int Id
         {
@@ -173,6 +175,27 @@ namespace Moonglow_DB.Models
             }
         }
 
+        public int? CategoryId
+        {
+            get => _categoryId;
+            set
+            {
+                _categoryId = value;
+                OnPropertyChanged(nameof(CategoryId));
+            }
+        }
+
+        public int FullStock
+        {
+            get => _fullStock;
+            set
+            {
+                _fullStock = value;
+                UpdateStockStatus();
+                OnPropertyChanged(nameof(FullStock));
+            }
+        }
+
         private bool _isSelected;
         public bool IsSelected
         {
@@ -187,19 +210,29 @@ namespace Moonglow_DB.Models
             }
         }
 
-        private void UpdateStockStatus()
+        public void UpdateStockStatus()
         {
+            System.Diagnostics.Debug.WriteLine($"UpdateStockStatus called for item: CurrentStock={CurrentStock}, MinimumStock={MinimumStock}, FullStock={FullStock}");
+            
             if (CurrentStock <= 0)
             {
                 StockStatus = "Out of Stock";
+                System.Diagnostics.Debug.WriteLine($"Setting status to: Out of Stock");
             }
             else if (CurrentStock <= MinimumStock)
             {
                 StockStatus = "Low Stock";
+                System.Diagnostics.Debug.WriteLine($"Setting status to: Low Stock");
+            }
+            else if (FullStock > 0 && CurrentStock > FullStock)
+            {
+                StockStatus = "Over Stock";
+                System.Diagnostics.Debug.WriteLine($"Setting status to: Over Stock");
             }
             else
             {
                 StockStatus = "In Stock";
+                System.Diagnostics.Debug.WriteLine($"Setting status to: In Stock");
             }
         }
 

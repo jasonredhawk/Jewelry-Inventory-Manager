@@ -40,6 +40,22 @@ namespace Moonglow_DB.Data
             _disposed = true;
         }
 
+        public void UpdateSchema()
+        {
+            try
+            {
+                using var connection = GetConnection();
+                System.Diagnostics.Debug.WriteLine("Starting schema update...");
+                UpdateDatabaseSchema(connection);
+                System.Diagnostics.Debug.WriteLine("Schema update completed successfully.");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Schema update failed: {ex.Message}");
+                throw;
+            }
+        }
+
         public bool TestConnection()
         {
             try
@@ -509,6 +525,104 @@ namespace Moonglow_DB.Data
                     var addFullStockSql = "ALTER TABLE LocationInventory ADD COLUMN FullStock INT NOT NULL DEFAULT 0";
                     using var addFullStockCommand = new MySqlCommand(addFullStockSql, connection);
                     addFullStockCommand.ExecuteNonQuery();
+                }
+
+                // Check if SupplierName column exists in PurchaseOrders table
+                var checkSupplierNameSql = @"
+                    SELECT COUNT(*) 
+                    FROM INFORMATION_SCHEMA.COLUMNS 
+                    WHERE TABLE_SCHEMA = DATABASE() 
+                    AND TABLE_NAME = 'PurchaseOrders' 
+                    AND COLUMN_NAME = 'SupplierName'";
+
+                using var checkSupplierNameCommand = new MySqlCommand(checkSupplierNameSql, connection);
+                var supplierNameExists = Convert.ToInt32(checkSupplierNameCommand.ExecuteScalar()) > 0;
+
+                if (!supplierNameExists)
+                {
+                    // Add SupplierName column to PurchaseOrders table
+                    var addSupplierNameSql = "ALTER TABLE PurchaseOrders ADD COLUMN SupplierName VARCHAR(100)";
+                    using var addSupplierNameCommand = new MySqlCommand(addSupplierNameSql, connection);
+                    addSupplierNameCommand.ExecuteNonQuery();
+                }
+
+                // Check if SupplierContact column exists in PurchaseOrders table
+                var checkSupplierContactSql = @"
+                    SELECT COUNT(*) 
+                    FROM INFORMATION_SCHEMA.COLUMNS 
+                    WHERE TABLE_SCHEMA = DATABASE() 
+                    AND TABLE_NAME = 'PurchaseOrders' 
+                    AND COLUMN_NAME = 'SupplierContact'";
+
+                using var checkSupplierContactCommand = new MySqlCommand(checkSupplierContactSql, connection);
+                var supplierContactExists = Convert.ToInt32(checkSupplierContactCommand.ExecuteScalar()) > 0;
+
+                if (!supplierContactExists)
+                {
+                    // Add SupplierContact column to PurchaseOrders table
+                    var addSupplierContactSql = "ALTER TABLE PurchaseOrders ADD COLUMN SupplierContact VARCHAR(100)";
+                    using var addSupplierContactCommand = new MySqlCommand(addSupplierContactSql, connection);
+                    addSupplierContactCommand.ExecuteNonQuery();
+                }
+
+                // Check if ExpectedDeliveryDate column exists in PurchaseOrders table
+                var checkExpectedDeliveryDateSql = @"
+                    SELECT COUNT(*) 
+                    FROM INFORMATION_SCHEMA.COLUMNS 
+                    WHERE TABLE_SCHEMA = DATABASE() 
+                    AND TABLE_NAME = 'PurchaseOrders' 
+                    AND COLUMN_NAME = 'ExpectedDeliveryDate'";
+
+                using var checkExpectedDeliveryDateCommand = new MySqlCommand(checkExpectedDeliveryDateSql, connection);
+                var expectedDeliveryDateExists = Convert.ToInt32(checkExpectedDeliveryDateCommand.ExecuteScalar()) > 0;
+
+                if (!expectedDeliveryDateExists)
+                {
+                    // Add ExpectedDeliveryDate column to PurchaseOrders table
+                    var addExpectedDeliveryDateSql = "ALTER TABLE PurchaseOrders ADD COLUMN ExpectedDeliveryDate DATE";
+                    using var addExpectedDeliveryDateCommand = new MySqlCommand(addExpectedDeliveryDateSql, connection);
+                    addExpectedDeliveryDateCommand.ExecuteNonQuery();
+                }
+
+                // Check if ActualDeliveryDate column exists in PurchaseOrders table
+                var checkActualDeliveryDateSql = @"
+                    SELECT COUNT(*) 
+                    FROM INFORMATION_SCHEMA.COLUMNS 
+                    WHERE TABLE_SCHEMA = DATABASE() 
+                    AND TABLE_NAME = 'PurchaseOrders' 
+                    AND COLUMN_NAME = 'ActualDeliveryDate'";
+
+                using var checkActualDeliveryDateCommand = new MySqlCommand(checkActualDeliveryDateSql, connection);
+                var actualDeliveryDateExists = Convert.ToInt32(checkActualDeliveryDateCommand.ExecuteScalar()) > 0;
+
+                if (!actualDeliveryDateExists)
+                {
+                    // Add ActualDeliveryDate column to PurchaseOrders table
+                    var addActualDeliveryDateSql = "ALTER TABLE PurchaseOrders ADD COLUMN ActualDeliveryDate DATE";
+                    using var addActualDeliveryDateCommand = new MySqlCommand(addActualDeliveryDateSql, connection);
+                    addActualDeliveryDateCommand.ExecuteNonQuery();
+                }
+
+                // Check if Notes column exists in PurchaseOrderItems table
+                var checkNotesSql = @"
+                    SELECT COUNT(*) 
+                    FROM INFORMATION_SCHEMA.COLUMNS 
+                    WHERE TABLE_SCHEMA = DATABASE() 
+                    AND TABLE_NAME = 'PurchaseOrderItems' 
+                    AND COLUMN_NAME = 'Notes'";
+
+                using var checkNotesCommand = new MySqlCommand(checkNotesSql, connection);
+                var notesExists = Convert.ToInt32(checkNotesCommand.ExecuteScalar()) > 0;
+                System.Diagnostics.Debug.WriteLine($"Notes column exists: {notesExists}");
+
+                if (!notesExists)
+                {
+                    System.Diagnostics.Debug.WriteLine("Adding Notes column to PurchaseOrderItems table...");
+                    // Add Notes column to PurchaseOrderItems table
+                    var addNotesSql = "ALTER TABLE PurchaseOrderItems ADD COLUMN Notes TEXT";
+                    using var addNotesCommand = new MySqlCommand(addNotesSql, connection);
+                    addNotesCommand.ExecuteNonQuery();
+                    System.Diagnostics.Debug.WriteLine("Notes column added successfully.");
                 }
             }
             catch (Exception ex)

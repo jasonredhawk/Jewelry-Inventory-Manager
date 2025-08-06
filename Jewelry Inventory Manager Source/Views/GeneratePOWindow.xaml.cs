@@ -19,6 +19,8 @@ namespace Moonglow_DB.Views
         private List<LocationInventoryItem> _filteredItems;
         private List<LocationInventoryItem> _selectedItems;
         private DispatcherTimer _updateTimer;
+        private Dictionary<string, int> _fullStockCache; // Cache for full stock values
+        private Dictionary<int, List<Models.ProductComponent>> _productComponentsCache; // Cache for product components
 
         public GeneratePOWindow(DatabaseContext databaseContext)
         {
@@ -26,11 +28,25 @@ namespace Moonglow_DB.Views
             _databaseContext = databaseContext;
             _selectedItems = new List<LocationInventoryItem>();
             
+            // Update database schema to ensure all required columns exist
+            try
+            {
+                _databaseContext.UpdateSchema();
+            }
+            catch (Exception ex)
+            {
+                ErrorDialog.ShowError($"Schema update error: {ex.Message}", "Schema Update Error");
+            }
+            
             // Initialize update timer
             _updateTimer = new DispatcherTimer();
-            _updateTimer.Interval = TimeSpan.FromMilliseconds(100);
+            _updateTimer.Interval = TimeSpan.FromMilliseconds(500); // Reduced frequency
             _updateTimer.Tick += UpdateTimer_Tick;
             _updateTimer.Start();
+            
+            // Initialize caches
+            _fullStockCache = new Dictionary<string, int>();
+            _productComponentsCache = new Dictionary<int, List<Models.ProductComponent>>();
             
             LoadLocations();
             LoadData();
@@ -68,6 +84,9 @@ namespace Moonglow_DB.Views
                 _allItems = GetAllLowStockItems();
                 _filteredItems = _allItems.ToList();
                 
+                // Pre-cache full stock values and product components
+                PreCacheData();
+                
                 // Subscribe to property changes for all items
                 foreach (var item in _filteredItems)
                 {
@@ -80,6 +99,41 @@ namespace Moonglow_DB.Views
             catch (Exception ex)
             {
                 ErrorDialog.ShowError($"Error loading data: {ex.Message}", "Error");
+            }
+        }
+
+        private void PreCacheData()
+        {
+            try
+            {
+                // Clear existing caches
+                _fullStockCache.Clear();
+                _productComponentsCache.Clear();
+
+                // Cache full stock values for all items
+                foreach (var item in _allItems)
+                {
+                    var cacheKey = $"{item.ItemType}_{item.Id}_{item.LocationId}";
+                    if (!_fullStockCache.ContainsKey(cacheKey))
+                    {
+                        _fullStockCache[cacheKey] = _databaseContext.GetFullStock(item.ItemType, item.Id, item.LocationId);
+                    }
+                }
+
+                // Cache product components for all products
+                var products = _allItems.Where(i => i.ItemType == "Product").ToList();
+                foreach (var product in products)
+                {
+                    if (!_productComponentsCache.ContainsKey(product.Id))
+                    {
+                        _productComponentsCache[product.Id] = _databaseContext.GetProductComponents(product.Id);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log error but don't fail the entire operation
+                System.Diagnostics.Debug.WriteLine($"Error pre-caching data: {ex.Message}");
             }
         }
 
@@ -236,25 +290,30 @@ namespace Moonglow_DB.Views
             var lowStockCount = _allItems.Count(i => i.CurrentStock > 0 && i.CurrentStock <= i.MinimumStock);
             var outOfStockCount = _allItems.Count(i => i.CurrentStock <= 0);
             
-            // Calculate total value based on selected items only
+            // Calculate total value based on selected items only using cached data
             var totalValue = _selectedItems.Sum(i => 
             {
-                var fullStock = _databaseContext.GetFullStock(i.ItemType, i.Id, i.LocationId);
+                var cacheKey = $"{i.ItemType}_{i.Id}_{i.LocationId}";
+                var fullStock = _fullStockCache.ContainsKey(cacheKey) ? _fullStockCache[cacheKey] : 0;
                 var quantityToOrder = Math.Max(fullStock - i.CurrentStock, 1);
                 
                 if (i.ItemType == "Product")
                 {
-                    // For products, calculate based on their components
-                    var productComponents = _databaseContext.GetProductComponents(i.Id);
-                    return productComponents.Sum(c => 
+                    // For products, calculate based on their cached components
+                    if (_productComponentsCache.ContainsKey(i.Id))
                     {
-                        var componentQuantity = quantityToOrder * c.Quantity;
-                        var componentItem = _allItems.FirstOrDefault(item => 
-                            item.ItemType == "Component" && 
-                            item.Id == c.ComponentId && 
-                            item.LocationId == i.LocationId);
-                        return componentItem?.Cost * componentQuantity ?? 0;
-                    });
+                        var productComponents = _productComponentsCache[i.Id];
+                        return productComponents.Sum(c => 
+                        {
+                            var componentQuantity = quantityToOrder * c.Quantity;
+                            var componentItem = _allItems.FirstOrDefault(item => 
+                                item.ItemType == "Component" && 
+                                item.Id == c.ComponentId && 
+                                item.LocationId == i.LocationId);
+                            return componentItem?.Cost * componentQuantity ?? 0;
+                        });
+                    }
+                    return 0;
                 }
                 else
                 {
@@ -398,46 +457,53 @@ namespace Moonglow_DB.Views
         {
             try
             {
+                // Force schema update before creating purchase order
+                _databaseContext.UpdateSchema();
+                
                 // Create the purchase order in the database
                 var poNumber = _databaseContext.GeneratePONumber();
                 var poDate = DateTime.Now;
                 var totalValue = 0m;
                 var poItems = new List<PurchaseOrderItem>();
 
-                // Calculate quantities and create PO items
+                // Calculate quantities and create PO items using cached data
                 foreach (var item in _selectedItems)
                 {
-                    var fullStock = _databaseContext.GetFullStock(item.ItemType, item.Id, item.LocationId);
+                    var cacheKey = $"{item.ItemType}_{item.Id}_{item.LocationId}";
+                    var fullStock = _fullStockCache.ContainsKey(cacheKey) ? _fullStockCache[cacheKey] : 0;
                     var quantityToOrder = Math.Max(fullStock - item.CurrentStock, 1);
 
                     if (item.ItemType == "Product")
                     {
-                        // For products, add their components to the PO
-                        var productComponents = _databaseContext.GetProductComponents(item.Id);
-                        foreach (var component in productComponents)
+                        // For products, add their components to the PO using cached data
+                        if (_productComponentsCache.ContainsKey(item.Id))
                         {
-                            var componentQuantityToOrder = quantityToOrder * component.Quantity;
-                            var componentItem = _allItems.FirstOrDefault(i => 
-                                i.ItemType == "Component" && 
-                                i.Id == component.ComponentId && 
-                                i.LocationId == item.LocationId);
-                            
-                            if (componentItem != null)
+                            var productComponents = _productComponentsCache[item.Id];
+                            foreach (var component in productComponents)
                             {
-                                var componentUnitPrice = componentItem.Cost;
-                                var componentLineValue = componentQuantityToOrder * componentUnitPrice;
-                                totalValue += componentLineValue;
-
-                                poItems.Add(new PurchaseOrderItem
+                                var componentQuantityToOrder = quantityToOrder * component.Quantity;
+                                var componentItem = _allItems.FirstOrDefault(i => 
+                                    i.ItemType == "Component" && 
+                                    i.Id == component.ComponentId && 
+                                    i.LocationId == item.LocationId);
+                                
+                                if (componentItem != null)
                                 {
-                                    ItemType = "Component",
-                                    ItemId = componentItem.Id,
-                                    LocationId = item.LocationId,
-                                    QuantityOrdered = componentQuantityToOrder,
-                                    UnitCost = componentUnitPrice,
-                                    TotalCost = componentLineValue,
-                                    Notes = $"For Product: {item.Name} (Qty: {quantityToOrder})"
-                                });
+                                    var componentUnitPrice = componentItem.Cost;
+                                    var componentLineValue = componentQuantityToOrder * componentUnitPrice;
+                                    totalValue += componentLineValue;
+
+                                    poItems.Add(new PurchaseOrderItem
+                                    {
+                                        ItemType = "Component",
+                                        ItemId = componentItem.Id,
+                                        LocationId = item.LocationId,
+                                        QuantityOrdered = componentQuantityToOrder,
+                                        UnitCost = componentUnitPrice,
+                                        TotalCost = componentLineValue,
+                                        Notes = $"For Product: {item.Name} (Qty: {quantityToOrder})"
+                                    });
+                                }
                             }
                         }
                     }
