@@ -124,7 +124,6 @@ C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manage
 C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\bin\Debug\net5.0-windows\runtimes\win-x64\native\k5sprt64.dll
 C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\bin\Debug\net5.0-windows\runtimes\win-x64\native\krb5_64.dll
 C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\bin\Debug\net5.0-windows\runtimes\win-x64\native\krbcc64.dll
-C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Moonglow DB.csproj.AssemblyReference.cache
 C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Moonglow_DB\Views\ConnectionWindow.baml
 C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Styles\SharedStyles.baml
 C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\AddCategoryWindow.baml
@@ -184,7 +183,6 @@ C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manage
 C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\OrdersWindow.g.cs
 C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\ProductsWindow.g.cs
 C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\ReportsWindow.g.cs
-C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\SetMinimumStockWindow.g.cs
 C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\StatusUpdateDialog.g.cs
 C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\TransferWindow.g.cs
 C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\App.g.cs
@@ -199,7 +197,6 @@ C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manage
 C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\ComponentTransformationWindow.baml
 C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\Controls\FilteredComboBox.baml
 C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\InventoryTransferWindow.baml
-C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\SetMinimumStockWindow.baml
 C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Moonglow DB.g.resources
 C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Moonglow DB.GeneratedMSBuildEditorConfig.editorconfig
 C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Moonglow DB.AssemblyInfoInputs.cache
@@ -210,4 +207,7 @@ C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manage
 C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Moonglow DB.pdb
 C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Moonglow DB.genruntimeconfig.cache
 C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\ref\Moonglow DB.dll
-C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\bin\Debug\net5.0-windows\ref\Moonglow DB.dll
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\SetStockLevelsWindow.g.cs
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Views\SetStockLevelsWindow.baml
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\Moonglow DB.csproj.AssemblyReference.cache
+C:\Users\jason\Documents\repo\Jewelry-Inventory-Manager\Jewelry Inventory Manager Source\obj\Debug\net5.0-windows\refint\Moonglow DB.dll

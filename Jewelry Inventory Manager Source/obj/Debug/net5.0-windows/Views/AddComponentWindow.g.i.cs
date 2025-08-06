@@ -124,7 +124,7 @@ namespace Moonglow_DB.Views {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/Moonglow DB;V1.0.0.0;component/views/addcomponentwindow.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/Moonglow DB;component/views/addcomponentwindow.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\..\Views\AddComponentWindow.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);

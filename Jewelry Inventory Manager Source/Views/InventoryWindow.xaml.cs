@@ -343,30 +343,30 @@ namespace Moonglow_DB.Views
             _selectedInventoryItem = dgInventory.SelectedItem as LocationInventoryItem;
         }
 
-        private void btnSetMinimumStock_Click(object sender, RoutedEventArgs e)
+        private void btnSetStockLevels_Click(object sender, RoutedEventArgs e)
         {
             try
             {
-                // Create a new database context for the SetMinimumStockWindow
+                // Create a new database context for the SetStockLevelsWindow
                 var settings = SettingsManager.LoadSettings();
                 var connectionString = SettingsManager.BuildConnectionString(settings);
                 var dbContext = new DatabaseContext(connectionString);
                 
-                var setMinimumStockWindow = new SetMinimumStockWindow(dbContext);
-                var result = setMinimumStockWindow.ShowDialog();
+                var setStockLevelsWindow = new SetStockLevelsWindow(dbContext);
+                var result = setStockLevelsWindow.ShowDialog();
                 
                 // Dispose the database context after the window is closed
                 dbContext.Dispose();
                 
                 if (result == true)
                 {
-                    // Refresh the data to show updated minimum stock values
+                    // Refresh the data to show updated stock values
                     LoadInventoryData();
                 }
             }
             catch (Exception ex)
             {
-                ErrorDialog.ShowError($"Error in InventoryWindow.btnSetMinimumStock_Click(): {ex.Message}\n\nStack Trace: {ex.StackTrace}", "Error");
+                ErrorDialog.ShowError($"Error in InventoryWindow.btnSetStockLevels_Click(): {ex.Message}\n\nStack Trace: {ex.StackTrace}", "Error");
             }
         }
 

@@ -92,7 +92,7 @@ namespace Moonglow_DB.Views.Controls {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/Moonglow DB;V1.0.0.0;component/views/controls/itemfiltercontrol.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/Moonglow DB;component/views/controls/itemfiltercontrol.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\..\..\Views\Controls\ItemFilterControl.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);

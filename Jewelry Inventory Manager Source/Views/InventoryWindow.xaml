@@ -123,10 +123,10 @@
                                         Style="{StaticResource ModernButtonStyle}"
                                         Click="btnGeneratePO_Click"/>
                              
-                                <Button x:Name="btnSetMinimumStock" 
-                                        Content="⚙️ Set Minimum Stock" 
+                                <Button x:Name="btnSetStockLevels" 
+                                        Content="📊 Set Stock Levels" 
                                         Style="{StaticResource ModernButtonStyle}"
-                                        Click="btnSetMinimumStock_Click"/>
+                                        Click="btnSetStockLevels_Click"/>
                             </StackPanel>
                             
                             <!-- Filters Row -->

@@ -81,6 +81,7 @@ namespace Moonglow_DB.Data
             CreateOrdersTable(connection);
             CreateOrderItemsTable(connection);
             CreatePurchaseOrdersTable(connection);
+            CreatePurchaseOrderItemsTable(connection);
             CreateBulkTransferOrdersTable(connection);
             CreateBulkTransferItemsTable(connection);
             
@@ -231,6 +232,7 @@ namespace Moonglow_DB.Data
                     ItemId INT NOT NULL,
                     CurrentStock INT NOT NULL DEFAULT 0,
                     MinimumStock INT NOT NULL DEFAULT 0,
+                    FullStock INT NOT NULL DEFAULT 0,
                     LastModified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                     UNIQUE KEY unique_location_item (LocationId, ItemType, ItemId),
                     FOREIGN KEY (LocationId) REFERENCES Locations(Id) ON DELETE CASCADE,
@@ -387,9 +389,36 @@ namespace Moonglow_DB.Data
                     PONumber VARCHAR(50) NOT NULL UNIQUE,
                     PODate DATE NOT NULL,
                     TotalValue DECIMAL(10,2) NOT NULL,
-                    Status ENUM('Pending', 'Approved', 'Received', 'Cancelled') DEFAULT 'Pending',
+                    Status ENUM('Created', 'Ordered', 'Shipped', 'Received', 'Completed', 'Cancelled') DEFAULT 'Created',
+                    SupplierName VARCHAR(100),
+                    SupplierContact VARCHAR(100),
+                    ExpectedDeliveryDate DATE,
+                    ActualDeliveryDate DATE,
+                    Notes TEXT,
                     CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP,
                     UpdatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+                )";
+
+            using var command = new MySqlCommand(sql, connection);
+            command.ExecuteNonQuery();
+        }
+
+        private void CreatePurchaseOrderItemsTable(MySqlConnection connection)
+        {
+            var sql = @"
+                CREATE TABLE IF NOT EXISTS PurchaseOrderItems (
+                    Id INT AUTO_INCREMENT PRIMARY KEY,
+                    PurchaseOrderId INT NOT NULL,
+                    ItemType ENUM('Product', 'Component') NOT NULL,
+                    ItemId INT NOT NULL,
+                    LocationId INT NOT NULL,
+                    QuantityOrdered INT NOT NULL,
+                    QuantityReceived INT DEFAULT 0,
+                    UnitCost DECIMAL(10,2) NOT NULL,
+                    TotalCost DECIMAL(10,2) NOT NULL,
+                    Notes TEXT,
+                    FOREIGN KEY (PurchaseOrderId) REFERENCES PurchaseOrders(Id) ON DELETE CASCADE,
+                    FOREIGN KEY (LocationId) REFERENCES Locations(Id) ON DELETE CASCADE
                 )";
 
             using var command = new MySqlCommand(sql, connection);
@@ -445,22 +474,41 @@ namespace Moonglow_DB.Data
             try
             {
                 // Check if TotalPrice column exists in OrderItems table
-                var checkColumnSql = @"
+                var checkTotalPriceSql = @"
                     SELECT COUNT(*) 
                     FROM INFORMATION_SCHEMA.COLUMNS 
                     WHERE TABLE_SCHEMA = DATABASE() 
                     AND TABLE_NAME = 'OrderItems' 
                     AND COLUMN_NAME = 'TotalPrice'";
 
-                using var checkCommand = new MySqlCommand(checkColumnSql, connection);
-                var columnExists = Convert.ToInt32(checkCommand.ExecuteScalar()) > 0;
+                using var checkTotalPriceCommand = new MySqlCommand(checkTotalPriceSql, connection);
+                var totalPriceExists = Convert.ToInt32(checkTotalPriceCommand.ExecuteScalar()) > 0;
 
-                if (!columnExists)
+                if (!totalPriceExists)
                 {
                     // Add TotalPrice column to OrderItems table
-                    var addColumnSql = "ALTER TABLE OrderItems ADD COLUMN TotalPrice DECIMAL(10,2) NOT NULL DEFAULT 0.00";
-                    using var addCommand = new MySqlCommand(addColumnSql, connection);
-                    addCommand.ExecuteNonQuery();
+                    var addTotalPriceSql = "ALTER TABLE OrderItems ADD COLUMN TotalPrice DECIMAL(10,2) NOT NULL DEFAULT 0.00";
+                    using var addTotalPriceCommand = new MySqlCommand(addTotalPriceSql, connection);
+                    addTotalPriceCommand.ExecuteNonQuery();
+                }
+
+                // Check if FullStock column exists in LocationInventory table
+                var checkFullStockSql = @"
+                    SELECT COUNT(*) 
+                    FROM INFORMATION_SCHEMA.COLUMNS 
+                    WHERE TABLE_SCHEMA = DATABASE() 
+                    AND TABLE_NAME = 'LocationInventory' 
+                    AND COLUMN_NAME = 'FullStock'";
+
+                using var checkFullStockCommand = new MySqlCommand(checkFullStockSql, connection);
+                var fullStockExists = Convert.ToInt32(checkFullStockCommand.ExecuteScalar()) > 0;
+
+                if (!fullStockExists)
+                {
+                    // Add FullStock column to LocationInventory table
+                    var addFullStockSql = "ALTER TABLE LocationInventory ADD COLUMN FullStock INT NOT NULL DEFAULT 0";
+                    using var addFullStockCommand = new MySqlCommand(addFullStockSql, connection);
+                    addFullStockCommand.ExecuteNonQuery();
                 }
             }
             catch (Exception ex)
@@ -1002,6 +1050,39 @@ namespace Moonglow_DB.Data
             command.ExecuteNonQuery();
         }
 
+        // Set full stock for a specific item and location
+        public void SetFullStock(string itemType, int itemId, int locationId, int fullStock)
+        {
+            var sql = @"
+                INSERT INTO LocationInventory (LocationId, ItemType, ItemId, CurrentStock, FullStock)
+                VALUES (@LocationId, @ItemType, @ItemId, 0, @FullStock)
+                ON DUPLICATE KEY UPDATE FullStock = @FullStock";
+            
+            using var command = CreateCommand(sql);
+            command.Parameters.AddWithValue("@LocationId", locationId);
+            command.Parameters.AddWithValue("@ItemType", itemType);
+            command.Parameters.AddWithValue("@ItemId", itemId);
+            command.Parameters.AddWithValue("@FullStock", fullStock);
+            
+            command.ExecuteNonQuery();
+        }
+
+        // Get full stock for a specific item and location
+        public int GetFullStock(string itemType, int itemId, int locationId)
+        {
+            var sql = @"
+                SELECT FullStock FROM LocationInventory 
+                WHERE LocationId = @LocationId AND ItemType = @ItemType AND ItemId = @ItemId";
+
+            using var command = CreateCommand(sql);
+            command.Parameters.AddWithValue("@LocationId", locationId);
+            command.Parameters.AddWithValue("@ItemType", itemType);
+            command.Parameters.AddWithValue("@ItemId", itemId);
+
+            var result = command.ExecuteScalar();
+            return result != null ? Convert.ToInt32(result) : 0;
+        }
+
         // Update component stock for a specific location
         public void UpdateComponentStock(int componentId, int locationId, int quantity)
         {
@@ -1351,6 +1432,199 @@ namespace Moonglow_DB.Data
             using var command = CreateCommand(sql);
             var count = Convert.ToInt32(command.ExecuteScalar());
             return $"TRF-{(count + 1):D6}";
+        }
+
+        // Enhanced Purchase Order Management Methods
+        public int CreatePurchaseOrder(PurchaseOrder purchaseOrder)
+        {
+            var sql = @"
+                INSERT INTO PurchaseOrders (PONumber, PODate, TotalValue, Status, SupplierName, SupplierContact, ExpectedDeliveryDate, Notes)
+                VALUES (@PONumber, @PODate, @TotalValue, @Status, @SupplierName, @SupplierContact, @ExpectedDeliveryDate, @Notes);
+                SELECT LAST_INSERT_ID();";
+
+            using var command = CreateCommand(sql);
+            command.Parameters.AddWithValue("@PONumber", purchaseOrder.PONumber);
+            command.Parameters.AddWithValue("@PODate", purchaseOrder.PODate);
+            command.Parameters.AddWithValue("@TotalValue", purchaseOrder.TotalValue);
+            command.Parameters.AddWithValue("@Status", purchaseOrder.Status.ToString());
+            command.Parameters.AddWithValue("@SupplierName", purchaseOrder.SupplierName ?? "");
+            command.Parameters.AddWithValue("@SupplierContact", purchaseOrder.SupplierContact ?? "");
+            command.Parameters.AddWithValue("@ExpectedDeliveryDate", purchaseOrder.ExpectedDeliveryDate);
+            command.Parameters.AddWithValue("@Notes", purchaseOrder.Notes ?? "");
+
+            return Convert.ToInt32(command.ExecuteScalar());
+        }
+
+        public void AddPurchaseOrderItem(PurchaseOrderItem item)
+        {
+            var sql = @"
+                INSERT INTO PurchaseOrderItems (PurchaseOrderId, ItemType, ItemId, LocationId, QuantityOrdered, UnitCost, TotalCost, Notes)
+                VALUES (@PurchaseOrderId, @ItemType, @ItemId, @LocationId, @QuantityOrdered, @UnitCost, @TotalCost, @Notes)";
+
+            using var command = CreateCommand(sql);
+            command.Parameters.AddWithValue("@PurchaseOrderId", item.PurchaseOrderId);
+            command.Parameters.AddWithValue("@ItemType", item.ItemType);
+            command.Parameters.AddWithValue("@ItemId", item.ItemId);
+            command.Parameters.AddWithValue("@LocationId", item.LocationId);
+            command.Parameters.AddWithValue("@QuantityOrdered", item.QuantityOrdered);
+            command.Parameters.AddWithValue("@UnitCost", item.UnitCost);
+            command.Parameters.AddWithValue("@TotalCost", item.TotalCost);
+            command.Parameters.AddWithValue("@Notes", item.Notes ?? "");
+
+            command.ExecuteNonQuery();
+        }
+
+        public List<PurchaseOrder> GetAllPurchaseOrders()
+        {
+            var purchaseOrders = new List<PurchaseOrder>();
+            var sql = @"
+                SELECT Id, PONumber, PODate, TotalValue, Status, SupplierName, SupplierContact, 
+                       ExpectedDeliveryDate, ActualDeliveryDate, Notes, CreatedDate, UpdatedDate
+                FROM PurchaseOrders 
+                ORDER BY CreatedDate DESC";
+
+            using var command = CreateCommand(sql);
+            using var reader = command.ExecuteReader();
+
+            while (reader.Read())
+            {
+                purchaseOrders.Add(new PurchaseOrder
+                {
+                    Id = reader.GetInt32(0),
+                    PONumber = reader.GetString(1),
+                    PODate = reader.GetDateTime(2),
+                    TotalValue = reader.GetDecimal(3),
+                    Status = (POStatus)Enum.Parse(typeof(POStatus), reader.GetString(4)),
+                    SupplierName = reader.IsDBNull(5) ? "" : reader.GetString(5),
+                    SupplierContact = reader.IsDBNull(6) ? "" : reader.GetString(6),
+                    ExpectedDeliveryDate = reader.IsDBNull(7) ? (DateTime?)null : reader.GetDateTime(7),
+                    ActualDeliveryDate = reader.IsDBNull(8) ? (DateTime?)null : reader.GetDateTime(8),
+                    Notes = reader.IsDBNull(9) ? "" : reader.GetString(9),
+                    CreatedDate = reader.GetDateTime(10),
+                    UpdatedDate = reader.GetDateTime(11)
+                });
+            }
+
+            return purchaseOrders;
+        }
+
+        public List<PurchaseOrderItem> GetPurchaseOrderItems(int purchaseOrderId)
+        {
+            var items = new List<PurchaseOrderItem>();
+            var sql = @"
+                SELECT Id, PurchaseOrderId, ItemType, ItemId, LocationId, QuantityOrdered, QuantityReceived, 
+                       UnitCost, TotalCost, Notes
+                FROM PurchaseOrderItems 
+                WHERE PurchaseOrderId = @PurchaseOrderId";
+
+            using var command = CreateCommand(sql);
+            command.Parameters.AddWithValue("@PurchaseOrderId", purchaseOrderId);
+            using var reader = command.ExecuteReader();
+
+            while (reader.Read())
+            {
+                items.Add(new PurchaseOrderItem
+                {
+                    Id = reader.GetInt32(0),
+                    PurchaseOrderId = reader.GetInt32(1),
+                    ItemType = reader.GetString(2),
+                    ItemId = reader.GetInt32(3),
+                    LocationId = reader.GetInt32(4),
+                    QuantityOrdered = reader.GetInt32(5),
+                    QuantityReceived = reader.GetInt32(6),
+                    UnitCost = reader.GetDecimal(7),
+                    TotalCost = reader.GetDecimal(8),
+                    Notes = reader.IsDBNull(9) ? "" : reader.GetString(9)
+                });
+            }
+
+            return items;
+        }
+
+        public void UpdatePurchaseOrderStatus(int purchaseOrderId, POStatus status, DateTime? statusDate = null)
+        {
+            var sql = "UPDATE PurchaseOrders SET Status = @Status, UpdatedDate = @UpdatedDate";
+            if (status == POStatus.Received && statusDate.HasValue)
+            {
+                sql += ", ActualDeliveryDate = @ActualDeliveryDate";
+            }
+
+            using var command = CreateCommand(sql);
+            command.Parameters.AddWithValue("@Status", status.ToString());
+            command.Parameters.AddWithValue("@UpdatedDate", DateTime.Now);
+            if (status == POStatus.Received && statusDate.HasValue)
+            {
+                command.Parameters.AddWithValue("@ActualDeliveryDate", statusDate.Value);
+            }
+
+            command.ExecuteNonQuery();
+        }
+
+        public void ReceivePurchaseOrderItems(int purchaseOrderId, List<PurchaseOrderItem> receivedItems)
+        {
+            using var connection = GetConnection();
+            using var transaction = connection.BeginTransaction();
+
+            try
+            {
+                foreach (var item in receivedItems)
+                {
+                    // Update the received quantity
+                    var updateSql = @"
+                        UPDATE PurchaseOrderItems 
+                        SET QuantityReceived = @QuantityReceived 
+                        WHERE Id = @Id";
+
+                    using var updateCommand = new MySqlCommand(updateSql, connection, transaction);
+                    updateCommand.Parameters.AddWithValue("@QuantityReceived", item.QuantityReceived);
+                    updateCommand.Parameters.AddWithValue("@Id", item.Id);
+                    updateCommand.ExecuteNonQuery();
+
+                    // Add the received stock to inventory
+                    if (item.ItemType == "Component")
+                    {
+                        UpdateComponentStock(item.ItemId, item.LocationId, item.QuantityReceived);
+                    }
+                    else if (item.ItemType == "Product")
+                    {
+                        // For products, add their components
+                        var productComponents = GetProductComponents(item.ItemId);
+                        foreach (var component in productComponents)
+                        {
+                            var componentQuantity = item.QuantityReceived * component.Quantity;
+                            UpdateComponentStock(component.ComponentId, item.LocationId, componentQuantity);
+                        }
+                    }
+
+                    // Create inventory transaction record
+                    var transactionSql = @"
+                        INSERT INTO InventoryTransactions (TransactionType, ItemType, ItemId, LocationId, Quantity, Notes)
+                        VALUES ('Purchase', @ItemType, @ItemId, @LocationId, @Quantity, @Notes)";
+
+                    using var transactionCommand = new MySqlCommand(transactionSql, connection, transaction);
+                    transactionCommand.Parameters.AddWithValue("@ItemType", item.ItemType);
+                    transactionCommand.Parameters.AddWithValue("@ItemId", item.ItemId);
+                    transactionCommand.Parameters.AddWithValue("@LocationId", item.LocationId);
+                    transactionCommand.Parameters.AddWithValue("@Quantity", item.QuantityReceived);
+                    transactionCommand.Parameters.AddWithValue("@Notes", $"Received from PO: {item.Notes}");
+                    transactionCommand.ExecuteNonQuery();
+                }
+
+                transaction.Commit();
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
+        }
+
+        public string GeneratePONumber()
+        {
+            var sql = "SELECT COUNT(*) FROM PurchaseOrders WHERE PONumber LIKE 'PO-%'";
+            using var command = CreateCommand(sql);
+            var count = Convert.ToInt32(command.ExecuteScalar());
+            return $"PO-{(count + 1):D6}";
         }
     }
 } 

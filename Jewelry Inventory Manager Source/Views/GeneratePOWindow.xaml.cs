@@ -239,7 +239,8 @@ namespace Moonglow_DB.Views
             // Calculate total value based on selected items only
             var totalValue = _selectedItems.Sum(i => 
             {
-                var quantityToOrder = Math.Max(i.MinimumStock - i.CurrentStock, 1);
+                var fullStock = _databaseContext.GetFullStock(i.ItemType, i.Id, i.LocationId);
+                var quantityToOrder = Math.Max(fullStock - i.CurrentStock, 1);
                 
                 if (i.ItemType == "Product")
                 {
@@ -395,8 +396,105 @@ namespace Moonglow_DB.Views
 
         private void GeneratePurchaseOrder()
         {
-            var poNumber = $"PO-{DateTime.Now:yyyyMMdd}-{DateTime.Now:HHmmss}";
-            var poDate = DateTime.Now;
+            try
+            {
+                // Create the purchase order in the database
+                var poNumber = _databaseContext.GeneratePONumber();
+                var poDate = DateTime.Now;
+                var totalValue = 0m;
+                var poItems = new List<PurchaseOrderItem>();
+
+                // Calculate quantities and create PO items
+                foreach (var item in _selectedItems)
+                {
+                    var fullStock = _databaseContext.GetFullStock(item.ItemType, item.Id, item.LocationId);
+                    var quantityToOrder = Math.Max(fullStock - item.CurrentStock, 1);
+
+                    if (item.ItemType == "Product")
+                    {
+                        // For products, add their components to the PO
+                        var productComponents = _databaseContext.GetProductComponents(item.Id);
+                        foreach (var component in productComponents)
+                        {
+                            var componentQuantityToOrder = quantityToOrder * component.Quantity;
+                            var componentItem = _allItems.FirstOrDefault(i => 
+                                i.ItemType == "Component" && 
+                                i.Id == component.ComponentId && 
+                                i.LocationId == item.LocationId);
+                            
+                            if (componentItem != null)
+                            {
+                                var componentUnitPrice = componentItem.Cost;
+                                var componentLineValue = componentQuantityToOrder * componentUnitPrice;
+                                totalValue += componentLineValue;
+
+                                poItems.Add(new PurchaseOrderItem
+                                {
+                                    ItemType = "Component",
+                                    ItemId = componentItem.Id,
+                                    LocationId = item.LocationId,
+                                    QuantityOrdered = componentQuantityToOrder,
+                                    UnitCost = componentUnitPrice,
+                                    TotalCost = componentLineValue,
+                                    Notes = $"For Product: {item.Name} (Qty: {quantityToOrder})"
+                                });
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // For components, add directly to PO
+                        var unitPrice = item.Cost;
+                        var lineValue = quantityToOrder * unitPrice;
+                        totalValue += lineValue;
+
+                        poItems.Add(new PurchaseOrderItem
+                        {
+                            ItemType = item.ItemType,
+                            ItemId = item.Id,
+                            LocationId = item.LocationId,
+                            QuantityOrdered = quantityToOrder,
+                            UnitCost = unitPrice,
+                            TotalCost = lineValue,
+                            Notes = ""
+                        });
+                    }
+                }
+
+                // Create the purchase order
+                var purchaseOrder = new PurchaseOrder
+                {
+                    PONumber = poNumber,
+                    PODate = poDate,
+                    TotalValue = totalValue,
+                    Status = POStatus.Created,
+                    Notes = "Generated from low stock items"
+                };
+
+                var poId = _databaseContext.CreatePurchaseOrder(purchaseOrder);
+
+                // Add all items to the PO
+                foreach (var item in poItems)
+                {
+                    item.PurchaseOrderId = poId;
+                    _databaseContext.AddPurchaseOrderItem(item);
+                }
+
+                // Generate CSV file
+                GenerateCSVFile(poNumber, poDate, poItems, totalValue);
+
+                ErrorDialog.ShowSuccess($"Purchase order created successfully!\nPO Number: {poNumber}\nTotal Value: {totalValue:C}\n\nCSV file saved to Desktop.", "Purchase Order Generated");
+                DialogResult = true;
+                Close();
+            }
+            catch (Exception ex)
+            {
+                ErrorDialog.ShowError($"Error generating purchase order: {ex.Message}", "Error");
+            }
+        }
+
+        private void GenerateCSVFile(string poNumber, DateTime poDate, List<PurchaseOrderItem> poItems, decimal totalValue)
+        {
             var fileName = $"PurchaseOrder_{poNumber}_{poDate:yyyyMMdd}.csv";
             var filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), fileName);
 
@@ -412,81 +510,35 @@ namespace Moonglow_DB.Views
             csv.WriteField("Name");
             csv.WriteField("Description");
             csv.WriteField("Location Stock");
-            csv.WriteField("Total Stock");
-            csv.WriteField("Minimum Stock");
+            csv.WriteField("Full Stock");
             csv.WriteField("Quantity to Order");
-            csv.WriteField("Unit Price/Cost");
+            csv.WriteField("Unit Cost");
             csv.WriteField("Total Line Value");
             csv.WriteField("Notes");
             csv.NextRecord();
 
-            var totalValue = 0m;
-            var processedItems = new List<string>(); // Track processed items to avoid duplicates
-
-            foreach (var item in _selectedItems)
+            foreach (var item in poItems)
             {
-                if (item.ItemType == "Product")
-                {
-                    // For products, add their components to the PO
-                    var productComponents = _databaseContext.GetProductComponents(item.Id);
-                    var quantityToOrder = Math.Max(item.MinimumStock - item.CurrentStock, 1);
-                    
-                    foreach (var component in productComponents)
-                    {
-                        var componentItem = _allItems.FirstOrDefault(i => 
-                            i.ItemType == "Component" && 
-                            i.Id == component.ComponentId && 
-                            i.LocationId == item.LocationId);
-                        
-                        if (componentItem != null)
-                        {
-                            var componentQuantityToOrder = quantityToOrder * component.Quantity;
-                            var componentUnitPrice = componentItem.Cost;
-                            var componentLineValue = componentQuantityToOrder * componentUnitPrice;
-                            totalValue += componentLineValue;
+                // Get item details for CSV
+                var itemDetails = GetItemDetails(item.ItemType, item.ItemId);
+                var locationName = GetLocationName(item.LocationId);
+                var currentStock = GetCurrentStock(item.ItemType, item.ItemId, item.LocationId);
+                var fullStock = _databaseContext.GetFullStock(item.ItemType, item.ItemId, item.LocationId);
 
-                            csv.WriteField(poNumber);
-                            csv.WriteField(poDate.ToString("yyyy-MM-dd"));
-                            csv.WriteField(item.LocationName);
-                            csv.WriteField("Component");
-                            csv.WriteField(componentItem.SKU);
-                            csv.WriteField(componentItem.Name);
-                            csv.WriteField(componentItem.Description);
-                            csv.WriteField(componentItem.CurrentStock);
-                            csv.WriteField(componentItem.TotalStockAcrossLocations);
-                            csv.WriteField(componentItem.MinimumStock);
-                            csv.WriteField(componentQuantityToOrder);
-                            csv.WriteField(componentUnitPrice.ToString("C"));
-                            csv.WriteField(componentLineValue.ToString("C"));
-                            csv.WriteField($"For Product: {item.Name} (Qty: {quantityToOrder})");
-                            csv.NextRecord();
-                        }
-                    }
-                }
-                else
-                {
-                    // For components, add directly to PO
-                    var quantityToOrder = Math.Max(item.MinimumStock - item.CurrentStock, 1);
-                    var unitPrice = item.Cost;
-                    var lineValue = quantityToOrder * unitPrice;
-                    totalValue += lineValue;
-
-                    csv.WriteField(poNumber);
-                    csv.WriteField(poDate.ToString("yyyy-MM-dd"));
-                    csv.WriteField(item.LocationName);
-                    csv.WriteField(item.ItemType);
-                    csv.WriteField(item.SKU);
-                    csv.WriteField(item.Name);
-                    csv.WriteField(item.Description);
-                    csv.WriteField(item.CurrentStock);
-                    csv.WriteField(item.TotalStockAcrossLocations);
-                    csv.WriteField(item.MinimumStock);
-                    csv.WriteField(quantityToOrder);
-                    csv.WriteField(unitPrice.ToString("C"));
-                    csv.WriteField(lineValue.ToString("C"));
-                    csv.WriteField("");
-                    csv.NextRecord();
-                }
+                csv.WriteField(poNumber);
+                csv.WriteField(poDate.ToString("yyyy-MM-dd"));
+                csv.WriteField(locationName);
+                csv.WriteField(item.ItemType);
+                csv.WriteField(itemDetails.SKU);
+                csv.WriteField(itemDetails.Name);
+                csv.WriteField(itemDetails.Description);
+                csv.WriteField(currentStock);
+                csv.WriteField(fullStock);
+                csv.WriteField(item.QuantityOrdered);
+                csv.WriteField(item.UnitCost.ToString("C"));
+                csv.WriteField(item.TotalCost.ToString("C"));
+                csv.WriteField(item.Notes);
+                csv.NextRecord();
             }
 
             // Write summary
@@ -501,33 +553,51 @@ namespace Moonglow_DB.Views
             csv.WriteField("");
             csv.WriteField("");
             csv.WriteField("");
-            csv.WriteField("");
             csv.WriteField("TOTAL:");
             csv.WriteField(totalValue.ToString("C"));
             csv.NextRecord();
-
-            // Save PO record to database
-            SavePurchaseOrderRecord(poNumber, poDate, totalValue);
-
-            ErrorDialog.ShowSuccess($"Purchase order saved to: {filePath}\nTotal Value: {totalValue:C}", "Purchase Order Generated");
         }
 
-        private void SavePurchaseOrderRecord(string poNumber, DateTime poDate, decimal totalValue)
+        private (string Name, string SKU, string Description) GetItemDetails(string itemType, int itemId)
         {
-            using var connection = _databaseContext.GetConnection();
-            var sql = @"
-                INSERT INTO PurchaseOrders 
-                (PONumber, PODate, TotalValue, Status, CreatedDate) 
-                VALUES (@poNumber, @poDate, @totalValue, 'Pending', @createdDate)";
-
-            using var command = new MySqlCommand(sql, connection);
-            command.Parameters.AddWithValue("@poNumber", poNumber);
-            command.Parameters.AddWithValue("@poDate", poDate);
-            command.Parameters.AddWithValue("@totalValue", totalValue);
-            command.Parameters.AddWithValue("@createdDate", DateTime.Now);
-
-            command.ExecuteNonQuery();
+            if (itemType == "Product")
+            {
+                var products = _databaseContext.GetAllProducts();
+                var product = products.FirstOrDefault(p => p.Id == itemId);
+                return product != null 
+                    ? (product.Name, product.SKU, product.Description ?? "") 
+                    : ("Unknown", "Unknown", "");
+            }
+            else
+            {
+                var components = _databaseContext.GetAllComponents();
+                var component = components.FirstOrDefault(c => c.Id == itemId);
+                return component != null 
+                    ? (component.Name, component.SKU, component.Description ?? "") 
+                    : ("Unknown", "Unknown", "");
+            }
         }
+
+        private string GetLocationName(int locationId)
+        {
+            var locations = _databaseContext.GetAllLocations();
+            var location = locations.FirstOrDefault(l => l.Id == locationId);
+            return location?.Name ?? "Unknown";
+        }
+
+        private int GetCurrentStock(string itemType, int itemId, int locationId)
+        {
+            if (itemType == "Product")
+            {
+                return _databaseContext.GetProductStock(itemId, locationId);
+            }
+            else
+            {
+                return _databaseContext.GetComponentStock(itemId, locationId);
+            }
+        }
+
+
 
         private void btnCancel_Click(object sender, RoutedEventArgs e)
         {
