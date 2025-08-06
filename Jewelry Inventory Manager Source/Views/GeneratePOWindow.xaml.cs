@@ -459,7 +459,14 @@ namespace Moonglow_DB.Views
             try
             {
                 // Force schema update before creating purchase order
-                _databaseContext.UpdateSchema();
+                try
+                {
+                    _databaseContext.UpdateSchema();
+                }
+                catch (Exception schemaEx)
+                {
+                    throw new Exception($"Database schema update failed: {schemaEx.Message}. Please ensure the database is properly initialized.");
+                }
                 
                 // Create the purchase order in the database
                 var poNumber = _databaseContext.GeneratePONumber();

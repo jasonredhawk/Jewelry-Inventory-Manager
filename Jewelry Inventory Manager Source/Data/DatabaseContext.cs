@@ -603,32 +603,52 @@ namespace Moonglow_DB.Data
                     addActualDeliveryDateCommand.ExecuteNonQuery();
                 }
 
-                // Check if Notes column exists in PurchaseOrderItems table
-                var checkNotesSql = @"
+                // Check if PurchaseOrderItems table exists
+                var checkTableSql = @"
                     SELECT COUNT(*) 
-                    FROM INFORMATION_SCHEMA.COLUMNS 
+                    FROM INFORMATION_SCHEMA.TABLES 
                     WHERE TABLE_SCHEMA = DATABASE() 
-                    AND TABLE_NAME = 'PurchaseOrderItems' 
-                    AND COLUMN_NAME = 'Notes'";
+                    AND TABLE_NAME = 'PurchaseOrderItems'";
 
-                using var checkNotesCommand = new MySqlCommand(checkNotesSql, connection);
-                var notesExists = Convert.ToInt32(checkNotesCommand.ExecuteScalar()) > 0;
-                System.Diagnostics.Debug.WriteLine($"Notes column exists: {notesExists}");
+                using var checkTableCommand = new MySqlCommand(checkTableSql, connection);
+                var tableExists = Convert.ToInt32(checkTableCommand.ExecuteScalar()) > 0;
+                System.Diagnostics.Debug.WriteLine($"PurchaseOrderItems table exists: {tableExists}");
 
-                if (!notesExists)
+                if (tableExists)
                 {
-                    System.Diagnostics.Debug.WriteLine("Adding Notes column to PurchaseOrderItems table...");
-                    // Add Notes column to PurchaseOrderItems table
-                    var addNotesSql = "ALTER TABLE PurchaseOrderItems ADD COLUMN Notes TEXT";
-                    using var addNotesCommand = new MySqlCommand(addNotesSql, connection);
-                    addNotesCommand.ExecuteNonQuery();
-                    System.Diagnostics.Debug.WriteLine("Notes column added successfully.");
+                    // Check if Notes column exists in PurchaseOrderItems table
+                    var checkNotesSql = @"
+                        SELECT COUNT(*) 
+                        FROM INFORMATION_SCHEMA.COLUMNS 
+                        WHERE TABLE_SCHEMA = DATABASE() 
+                        AND TABLE_NAME = 'PurchaseOrderItems' 
+                        AND COLUMN_NAME = 'Notes'";
+
+                    using var checkNotesCommand = new MySqlCommand(checkNotesSql, connection);
+                    var notesExists = Convert.ToInt32(checkNotesCommand.ExecuteScalar()) > 0;
+                    System.Diagnostics.Debug.WriteLine($"Notes column exists: {notesExists}");
+
+                    if (!notesExists)
+                    {
+                        System.Diagnostics.Debug.WriteLine("Adding Notes column to PurchaseOrderItems table...");
+                        // Add Notes column to PurchaseOrderItems table
+                        var addNotesSql = "ALTER TABLE PurchaseOrderItems ADD COLUMN Notes TEXT";
+                        using var addNotesCommand = new MySqlCommand(addNotesSql, connection);
+                        addNotesCommand.ExecuteNonQuery();
+                        System.Diagnostics.Debug.WriteLine("Notes column added successfully.");
+                    }
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("PurchaseOrderItems table does not exist. Creating it...");
+                    CreatePurchaseOrderItemsTable(connection);
                 }
             }
             catch (Exception ex)
             {
-                // Log the error but don't throw - schema updates are optional
+                // Log the error and re-throw so calling code can handle it
                 System.Diagnostics.Debug.WriteLine($"Schema update error: {ex.Message}");
+                throw;
             }
         }
 
@@ -1571,6 +1591,22 @@ namespace Moonglow_DB.Data
 
         public void AddPurchaseOrderItem(PurchaseOrderItem item)
         {
+            // Ensure the table exists before trying to insert
+            using var connection = GetConnection();
+            var checkTableSql = @"
+                SELECT COUNT(*) 
+                FROM INFORMATION_SCHEMA.TABLES 
+                WHERE TABLE_SCHEMA = DATABASE() 
+                AND TABLE_NAME = 'PurchaseOrderItems'";
+
+            using var checkTableCommand = new MySqlCommand(checkTableSql, connection);
+            var tableExists = Convert.ToInt32(checkTableCommand.ExecuteScalar()) > 0;
+
+            if (!tableExists)
+            {
+                CreatePurchaseOrderItemsTable(connection);
+            }
+
             var sql = @"
                 INSERT INTO PurchaseOrderItems (PurchaseOrderId, ItemType, ItemId, LocationId, QuantityOrdered, UnitCost, TotalCost, Notes)
                 VALUES (@PurchaseOrderId, @ItemType, @ItemId, @LocationId, @QuantityOrdered, @UnitCost, @TotalCost, @Notes)";
